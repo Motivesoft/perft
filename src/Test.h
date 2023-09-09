@@ -4,6 +4,9 @@
 
 class Test
 {
+private:
+    unsigned int perftRun( int depth, const std::string& fen, bool divide = true );
+
 public:
     /// <summary>
     /// Do a depth search with the provided FEN string and report the results
@@ -18,7 +21,7 @@ public:
     /// </summary>
     /// <param name="fen">the FEN string, with expected results</param>
     /// <returns></returns>
-    static bool perftFen( const std::string& fen );
+    static bool perftFen( const std::string& fenWithResults );
 
     /// <summary>
     /// Read a file of FEN strings and pass them to <code>perftFen</code>

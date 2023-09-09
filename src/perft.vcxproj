@@ -74,12 +74,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Board.cpp" />
     <ClCompile Include="Fen.cpp" />
     <ClCompile Include="perft.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="VersionInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Board.h" />
     <ClInclude Include="Fen.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Test.h" />

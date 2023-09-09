@@ -150,5 +150,27 @@ bool Test::perftFile( const std::string& filename )
 
 unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
 {
-    return 0;
+    // Prep here
+
+
+
+    // Run the test
+
+    clock_t start = clock();
+
+    unsigned int nodes = 0;// = perftImpl( depth, board, true );
+
+    clock_t end = clock();
+
+    // Tidy up and report
+
+    float elapsed = static_cast<float>( end - start ) / CLOCKS_PER_SEC;
+    float nps = elapsed == 0 ? 0 : static_cast<float>( nodes ) / elapsed;
+
+    // This will give 0 if elapsed is close to zero - but not sure what to do with that other than continue
+    long lnps = std::lround( nps );
+
+    std::cerr << "  Found " << nodes << " nodes in " << elapsed << "s (" << lnps << " nps)" << std::endl;
+
+    return nodes;
 }

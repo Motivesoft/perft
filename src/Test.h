@@ -6,7 +6,6 @@ class Test
 {
 private:
     static unsigned int perftRun( int depth, const std::string& fen, bool divide = true );
-
     static void report( int depth, unsigned int expected, unsigned int actual );
 
 public:

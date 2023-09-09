@@ -36,9 +36,41 @@ bool Test::perftFen( const std::string& fenWithResults )
     if ( semicolon != SIZE_MAX )
     {
         std::string fen = fenWithResults.substr( 0, semicolon );
-        std::string results = fenWithResults.substr( semicolon + 1 );
+        std::string results = fenWithResults.substr( semicolon + 2 );
 
+        int depth;
+        unsigned int actualResult;
 
+        std::cerr << fen << std::endl;
+
+        // Split by ";D" and extract depth and expected result
+        size_t pos = 0;
+        std::string delimiter( ";D" );
+        std::string token;
+        while ( ( pos = results.find( delimiter ) ) != std::string::npos )
+        {
+            token = results.substr( 0, pos );
+
+            size_t split = token.find_first_of( ' ', 0 );
+            if ( split != SIZE_MAX )
+            {
+                depth = atoi( token.substr( 0, split ).c_str() );
+                actualResult = perftRun( depth, fen );
+                report( depth, atoi( token.substr( split + 1 ).c_str() ), actualResult );
+            }
+
+            results.erase( 0, pos + delimiter.length() );
+        }
+
+        // Get the last one
+        token = results;
+        size_t split = token.find_first_of( ' ', 0 );
+        if ( split != SIZE_MAX )
+        {
+            depth = atoi( token.substr( 0, split ).c_str() );
+            actualResult = perftRun( depth, fen );
+            report( depth, atoi( token.substr( split + 1 ).c_str() ), actualResult );
+        }
     }
     else if ( comma != SIZE_MAX )
     {
@@ -46,17 +78,29 @@ bool Test::perftFen( const std::string& fenWithResults )
         std::string results = fenWithResults.substr( comma + 1 );
 
         int depth = 1;
+        unsigned int actualResult;
 
+        std::cerr << fen << std::endl;
+
+        // Split by comma and infer the depth
         size_t pos = 0;
         std::string delimiter( "," );
         std::string token;
         while ( ( pos = results.find( delimiter ) ) != std::string::npos )
         {
             token = results.substr( 0, pos );
-            std::cout << token << std::endl;
+
+            actualResult = perftRun( depth, fen );
+            report( depth, atoi( token.c_str() ), actualResult );
+
             results.erase( 0, pos + delimiter.length() );
+            depth++;
         }
-        std::cout << results << std::endl;
+
+        // Get the last one
+        token = results;
+        actualResult = perftRun( depth, fen );
+        report( depth, atoi( token.c_str() ), actualResult );
     }
     else
     {
@@ -65,6 +109,16 @@ bool Test::perftFen( const std::string& fenWithResults )
     }
 
     return true;
+}
+
+void Test::report( int depth, unsigned int expected, unsigned int actual )
+{
+    if ( expected != actual )
+    {
+        std::cerr << "  **ERROR**";
+    }
+
+    std::cerr << "  Depth: " << depth << ". Expected: " << expected << ". Actual: " << actual << std::endl;
 }
 
 bool Test::perftFile( const std::string& filename )

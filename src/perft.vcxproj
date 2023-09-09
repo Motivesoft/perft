@@ -74,11 +74,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Fen.cpp" />
     <ClCompile Include="perft.cpp" />
+    <ClCompile Include="Test.cpp" />
     <ClCompile Include="VersionInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Fen.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Test.h" />
     <ClInclude Include="VersionInfo.h" />
   </ItemGroup>
   <ItemGroup>

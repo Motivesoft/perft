@@ -17,6 +17,11 @@ bool Test::perftDepth( int depth, const std::string& fen )
         return false;
     }
 
+    std::cerr << fen << std::endl;
+
+    unsigned int actualResult = perftRun( depth, fen );
+    std::cerr << "  Depth: " << depth << ". Actual: " << actualResult << std::endl;
+
     return true;
 }
 
@@ -111,16 +116,6 @@ bool Test::perftFen( const std::string& fenWithResults )
     return true;
 }
 
-void Test::report( int depth, unsigned int expected, unsigned int actual )
-{
-    if ( expected != actual )
-    {
-        std::cerr << "  **ERROR**";
-    }
-
-    std::cerr << "  Depth: " << depth << ". Expected: " << expected << ". Actual: " << actual << std::endl;
-}
-
 bool Test::perftFile( const std::string& filename )
 {
     std::fstream file;
@@ -173,4 +168,14 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
     std::cerr << "  Found " << nodes << " nodes in " << elapsed << "s (" << lnps << " nps)" << std::endl;
 
     return nodes;
+}
+
+void Test::report( int depth, unsigned int expected, unsigned int actual )
+{
+    if ( expected != actual )
+    {
+        std::cerr << "  **ERROR**";
+    }
+
+    std::cerr << "  Depth: " << depth << ". Expected: " << expected << ". Actual: " << actual << std::endl;
 }

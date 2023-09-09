@@ -56,7 +56,17 @@ bool processCommandLine( int argc, const char** argv )
     {
         std::string arg = argv[ 1 ];
 
-        if ( isdigit( arg[ 1 ] ) )
+        // If the first arg is a depth (all digits, not a FEN string), then process it accordingly
+        bool isDepth = true;
+        for ( std::string::const_iterator it = arg.cbegin(); it != arg.cend(); it++ )
+        {
+            if ( !isdigit( *it ) )
+            {
+                isDepth = false;
+            }
+        }
+
+        if ( isDepth )
         {
             // [depth] or [depth] [fen]
 

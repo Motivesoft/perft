@@ -19,6 +19,8 @@ unsigned long long BitBoard::pawnMovesAttackBlack[ 64 ];
 
 unsigned long long BitBoard::knightMoves[ 64 ];
 
+unsigned long long BitBoard::kingMoves[ 64 ];
+
 void BitBoard::initialize()
 {
     for ( unsigned short square = 0; square < 64; square++ )
@@ -139,6 +141,42 @@ void BitBoard::initialize()
             }
         }
 
+        // King
+
+        kingMoves[ square ] = 0;
+
+        if( rank > 0 )
+        {
+            if ( file > 0 )
+            {
+                kingMoves[ square ] |= ULL_MASK << ( square - 9 );
+            }
+            if ( file < 7 )
+            {
+                kingMoves[ square ] |= ULL_MASK << ( square - 7 );
+            }
+            kingMoves[ square ] |= ULL_MASK << ( square - 8 );
+        }
+        if ( rank < 7 )
+        {
+            if ( file > 0 )
+            {
+                kingMoves[ square ] |= ULL_MASK << ( square + 7 );
+            }
+            if ( file < 7 )
+            {
+                kingMoves[ square ] |= ULL_MASK << ( square + 9 );
+            }
+            kingMoves[ square ] |= ULL_MASK << ( square + 8 );
+        }
+        if ( file > 0 )
+        {
+            kingMoves[ square ] |= ULL_MASK << ( square - 1 );
+        }
+        if ( file < 7 )
+        {
+            kingMoves[ square ] |= ULL_MASK << ( square + 1 );
+        }
         //dumpBitBoard( northMoves[ square ], " North" );
         //dumpBitBoard( southMoves[ square ], " South" );
         //dumpBitBoard( northMoves[square] | southMoves[ square ], " Combined" );
@@ -147,7 +185,8 @@ void BitBoard::initialize()
         //dumpBitBoard( pawnMovesNormalBlack[ square ], " Black Pawn" );
         //dumpBitBoard( pawnMovesAttackBlack[ square ], " Black Pawn Attack" );
         //dumpBitBoard( northEastMoves[square] | southWestMoves[ square ], " Combined" );
-        dumpBitBoard( knightMoves[ square ], " Knight" );
+        //dumpBitBoard( knightMoves[ square ], " Knight" );
+        dumpBitBoard( kingMoves[ square ], " King" );
     }
 }
 

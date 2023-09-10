@@ -99,12 +99,10 @@ void BitBoard::initialize()
             if ( file < 6 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square + 10 );
-                std::cerr << "1: " << (char) ( 'a' + BitBoard::file( square + 10 ) ) << (char) ( '1' + BitBoard::rank( square + 10 ) ) << std::endl;
             }
             if ( file > 1 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square + 6 );
-                std::cerr << "2: " << (char) ( 'a' + BitBoard::file( square + 6 ) ) << (char) ( '1' + BitBoard::rank( square + 6 ) ) << std::endl;
             }
         }
         if ( rank > 0 )
@@ -112,12 +110,10 @@ void BitBoard::initialize()
             if ( file < 6 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square - 6 );
-                std::cerr << "3: " << (char) ( 'a' + BitBoard::file( square - 6 ) ) << (char) ( '1' + BitBoard::rank( square - 6 ) ) << std::endl;
             }
             if ( file > 1 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square - 10 );
-                std::cerr << "4: " << (char) ( 'a' + BitBoard::file( square - 10 ) ) << (char) ( '1' + BitBoard::rank( square - 10 ) ) << std::endl;
             }
         }
         if ( rank < 6 )
@@ -125,12 +121,10 @@ void BitBoard::initialize()
             if ( file < 7 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square + 17 );
-                std::cerr << "5: " << (char) ( 'a' + BitBoard::file( square + 17 ) ) << (char) ( '1' + BitBoard::rank( square + 17 ) ) << std::endl;
             }
             if ( file > 0 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square + 15 );
-                std::cerr << "6: " << (char) ( 'a' + BitBoard::file( square + 15 ) ) << (char) ( '1' + BitBoard::rank( square + 15 ) ) << std::endl;
             }
         }
         if ( rank > 1 )
@@ -138,12 +132,10 @@ void BitBoard::initialize()
             if ( file < 7 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square - 15 );
-                std::cerr << "7: " << (char) ( 'a' + BitBoard::file( square - 15 ) ) << (char) ( '1' + BitBoard::rank( square - 15 ) ) << std::endl;
             }
             if ( file > 0 )
             {
                 knightMoves[ square ] |= ULL_MASK << ( square - 17 );
-                std::cerr << "8: " << (char) ( 'a' + BitBoard::file( square - 17 ) ) << (char) ( '1' + BitBoard::rank( square - 17 ) ) << std::endl;
             }
         }
 

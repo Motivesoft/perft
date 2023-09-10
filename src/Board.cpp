@@ -3,6 +3,25 @@
 #include <iostream>
 #include <sstream>
 
+void Board::getMoves( std::vector<Move>& moves )
+{
+    // TODO return the legal moves
+}
+
+Board::State Board::makeMove( const Move& move )
+{
+    Board::State state( *this );
+
+    // TODO the actual make move stuff here
+
+    return state;
+}
+
+void Board::unmakeMove( const Board::State& state )
+{
+    state.apply( *this );
+}
+
 Board* Board::createBoard( const std::string& fen )
 {
     // Content of the FEN string
@@ -47,15 +66,6 @@ Board* Board::createBoard( const std::string& fen )
             rest = rest.substr( index + 1 );
         }
     }
-
-#ifdef _DEBUG
-    std::cerr << pieces << std::endl;
-    std::cerr << color << std::endl;
-    std::cerr << castling << std::endl;
-    std::cerr << enPassant << std::endl;
-    std::cerr << halfMoveClock << std::endl;
-    std::cerr << fullMoveNumber << std::endl;
-#endif
 
     // Two sets of bitboards, white and black
     unsigned long long bitboards[ 12 ];
@@ -318,5 +328,54 @@ size_t Board::bitboardArrayIndexFromPiece( const char piece )
 
         default:
             return -1;
+    }
+}
+
+Board::State::State( const Board& board ) :
+    whiteToMove( board.whiteToMove ),
+    enPassantIndex( board.enPassantIndex ),
+    halfMoveClock( board.halfMoveClock ),
+    fullMoveNumber( board.fullMoveNumber )
+{
+    for ( size_t loop = 0; loop < 12; loop++ )
+    {
+        this->bitboards[ loop ] = board.bitboards[ loop ];
+    }
+
+    for ( size_t loop = 0; loop < 4; loop++ )
+    {
+        this->castlingRights[ loop ] = board.castlingRights[ loop ];
+    }
+}
+
+void Board::State::apply( Board& board ) const
+{
+    board.whiteToMove = whiteToMove;
+    board.enPassantIndex = enPassantIndex;
+    board.halfMoveClock = halfMoveClock;
+    board.fullMoveNumber = fullMoveNumber;
+
+    board.allPieces = board.whitePieces = board.blackPieces = board.emptySquares = 0;
+
+    for ( size_t loop = 0; loop < 12; loop++ )
+    {
+        board.bitboards[ loop ] = bitboards[ loop ];
+
+        if ( loop < 6 )
+        {
+            board.whitePieces |= bitboards[ loop ];
+        }
+        else
+        {
+            board.blackPieces |= bitboards[ loop ];
+        }
+    }
+
+    board.allPieces = board.whitePieces | board.blackPieces;
+    board.emptySquares = ~board.allPieces;
+
+    for ( size_t loop = 0; loop < 4; loop++ )
+    {
+        board.castlingRights[ loop ] = castlingRights[ loop ];
     }
 }

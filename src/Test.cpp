@@ -149,12 +149,14 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
 
     Board* board = Board::createBoard( fen );
     
+#if _DEBUG
     if ( fen != board->toString() )
     {
-        std::cout << "**WARNING** FEN conversion mismatch:" << std::endl;
+        std::cout << "FEN conversion mismatch - check the differences are only in expected results:" << std::endl;
         std::cout << "  From: [" << fen << "]" << std::endl;
         std::cout << "  To  : [" << board->toString() << "]" << std::endl;
     }
+#endif
 
     // Run the test
 
@@ -186,28 +188,33 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
         return 1;
     }
 
-    //std::vector<Move> moves = board->getMoves();
+    std::vector<Move> moves;
+    board->getMoves( moves );
 
-    //for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); it++ )
-    //{
-    //    Move& move = *it;
-    //    Board tBoard = board->makeMove( move );
+    for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); it++ )
+    {
+        Move& move = *it;
 
-    //    if ( divide )
-    //    {
-    //        unsigned long moveNodes = perftLoop( depth - 1, tBoard );
-    //        nodes += moveNodes;
+        Board::State undo = board->makeMove( move );
 
-    //        std::cout << "  " << move.toString() << " : " << moveNodes << " " << tBoard.toFENString() << std::endl;
-    //    }
-    //    else
-    //    {
-    //        nodes += perftLoop( depth - 1, tBoard );
-    //    }
-    //}
+        if ( divide )
+        {
+            unsigned long moveNodes = perftLoop( depth - 1, board );
+            nodes += moveNodes;
+
+            std::cout << "  " << move.toString() << " : " << moveNodes << " " << board->toString() << std::endl;
+        }
+        else
+        {
+            nodes += perftLoop( depth - 1, board );
+        }
+
+        board->unmakeMove( undo );
+    }
 
     return nodes;
 }
+
 void Test::report( int depth, unsigned int expected, unsigned int actual )
 {
     if ( expected != actual )

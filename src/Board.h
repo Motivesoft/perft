@@ -1,9 +1,9 @@
 #pragma once
 
-#include <bitset>
-#include <iostream>
 #include <string>
 #include <vector>
+
+#include "Move.h"
 
 class Board
 {
@@ -71,6 +71,31 @@ public:
     static Board* createBoard( const std::string& fen );
 
     std::string toString() const;
+
+    void getMoves( std::vector<Move>& moves );
+
+    class State
+    {
+    private:
+        unsigned long long bitboards[ 12 ];
+
+        bool whiteToMove;
+
+        bool castlingRights[ 4 ];
+
+        unsigned long long enPassantIndex;
+
+        unsigned short halfMoveClock;
+        unsigned short fullMoveNumber;
+
+    public:
+        State( const Board& board );
+
+        void apply( Board& board ) const;
+    };
+
+    Board::State makeMove( const Move& move );
+    void unmakeMove( const Board::State& state );
 
     // State* makeMove( const Move& move )
     // undoMove( state )

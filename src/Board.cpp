@@ -57,6 +57,69 @@ Board* Board::createBoard( const std::string& fen )
     std::cerr << fullMoveNumber << std::endl;
 #endif
 
+    // Two sets of bitboards, white and black
+    unsigned long long bitboards[ 12 ];
+    for ( size_t loop = 0; loop < 12; loop++ )
+    {
+        bitboards[ loop ] = 0;
+    }
+
+    // Unpack FEN board representation
+    unsigned long long mask = 1ull << 56;
+    size_t rank = 7;
+
+    // Split by '/' and assume the input data is valid
+    size_t pos = 0;
+    std::string delimiter( "/" );
+    std::string token;
+    while ( ( pos = pieces.find( delimiter ) ) != std::string::npos )
+    {
+        token = pieces.substr( 0, pos );
+
+        for ( std::string::const_iterator it = token.cbegin(); it != token.cend(); it++ )
+        {
+            if ( isdigit( *it ) )
+            {
+                char distance[ 2 ];
+                distance[ 0 ] = *it;
+                distance[ 1 ] = '\0';
+                mask <<= atoi( distance );
+            }
+            else
+            {
+                bitboards[ bitboardArrayIndexFromPiece( *it ) ] |= mask;
+                mask <<= 1;
+            }
+        }
+
+        // Move to next line
+        rank--;
+        mask = 1ull << (rank << 3);
+
+        pieces.erase( 0, pos + delimiter.length() );
+    }
+
+    // Handle the last line
+    token = pieces;
+
+    for ( std::string::const_iterator it = token.cbegin(); it != token.cend(); it++ )
+    {
+        if ( isdigit( *it ) )
+        {
+            char distance[ 2 ];
+            distance[ 0 ] = *it;
+            distance[ 1 ] = '\0';
+            mask <<= atoi( distance );
+        }
+        else
+        {
+            bitboards[ bitboardArrayIndexFromPiece( *it ) ] |= mask;
+            mask <<= 1;
+        }
+    }
+
+    bool whiteToPlay = color == "w";
+
     size_t castlingIndex = 0;
     bool castlingRights[] = {false, false, false, false};
 
@@ -88,7 +151,8 @@ Board* Board::createBoard( const std::string& fen )
         ep = 1ull << ( ( ( enPassant[ 1 ] - '1' ) << 3 ) | ( enPassant[ 0 ] - 'a' ) );
     }
 
-    return new Board( color == "w",
+    return new Board( bitboards,
+                      whiteToPlay,
                       castlingRights,
                       ep,
                       atoi( halfMoveClock.c_str() ),
@@ -100,6 +164,50 @@ std::string Board::toString() const
     std::stringstream fen;
 
     // Pieces
+    unsigned short counter = 0;
+    size_t file = 0;
+    size_t rank = 7;
+    for ( unsigned long long mask = 1ull << 56; ; )
+    {
+        if ( isEmpty( mask ) )
+        {
+            counter++;
+        }
+        else
+        {
+            if ( counter > 0 )
+            {
+                fen << counter;
+                counter = 0;
+            }
+            fen << pieceFromBitboardArrayIndex( bitboardArrayIndexFromBit( mask ) );
+        }
+        mask <<= 1;
+        file++;
+        if ( file == 8 )
+        {
+            if ( counter > 0 )
+            {
+                fen << counter;
+                counter = 0;
+            }
+
+            if ( rank == 0 )
+            {
+                break;
+            }
+
+            rank--;
+            
+            fen << "/";
+
+            file = 0;
+
+            // Move to the next rank down the board (h-a)
+            mask = 1ull << (rank << 3);
+        }
+    }
+
     fen << " ";
 
     // Color
@@ -140,7 +248,75 @@ std::string Board::toString() const
     fen << halfMoveClock << " ";
 
     // Full Move Number
-    fen << fullMoveNumber << " ";
+    fen << fullMoveNumber;
 
     return fen.str();
+}
+
+bool Board::isEmpty( unsigned long long bit ) const
+{
+    return emptySquares & bit;
+}
+
+size_t Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
+{
+    for ( size_t loop = 0; loop < 12; loop++ )
+    {
+        if ( bitboards[ loop ] & bit )
+        {
+            return loop;
+        }
+    }
+
+    return -1;
+}
+
+const char Board::pieceFromBitboardArrayIndex( size_t arrayIndex )
+{
+    return "PNBRQKpnbrqk"[ arrayIndex ];
+}
+
+size_t Board::bitboardArrayIndexFromPiece( const char piece )
+{
+    switch ( piece )
+    {
+        case 'P':
+            return 0;
+
+        case 'N':
+            return 1;
+
+        case 'B':
+            return 2;
+
+        case 'R':
+            return 3;
+
+        case 'Q':
+            return 4;
+
+        case 'K':
+            return 5;
+
+        case 'p':
+            return 6;
+
+        case 'n':
+            return 7;
+
+        case 'b':
+            return 8;
+
+        case 'r':
+            return 9;
+
+        case 'q':
+            return 10;
+
+        case 'k':
+            return 11;
+
+        default:
+            return -1;
+    }
 }

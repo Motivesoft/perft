@@ -148,8 +148,13 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
     // Prep here
 
     Board* board = Board::createBoard( fen );
-    std::cout << board->toString() << std::endl;
-    return 0;
+    
+    if ( fen != board->toString() )
+    {
+        std::cout << "**WARNING** FEN conversion mismatch:" << std::endl;
+        std::cout << "  From: [" << fen << "]" << std::endl;
+        std::cout << "  To  : [" << board->toString() << "]" << std::endl;
+    }
 
     // Run the test
 

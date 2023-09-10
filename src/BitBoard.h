@@ -201,5 +201,15 @@ private:
 
 public:
     static void initialize();
+
+    inline static unsigned long long getKingMoveMask( unsigned long index )
+    {
+        return kingMoves[ index ];
+    }
+
+    inline static unsigned long long getKnightMoveMask( unsigned long index )
+    {
+        return kingMoves[ index ];
+    }
 };
 

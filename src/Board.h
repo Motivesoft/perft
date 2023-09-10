@@ -8,6 +8,13 @@
 class Board
 {
 private:
+    static const unsigned short PAWN;
+    static const unsigned short KNIGHT;
+    static const unsigned short BISHOP;
+    static const unsigned short ROOK;
+    static const unsigned short QUEEN;
+    static const unsigned short KING;
+
     unsigned long long bitboards[ 12 ];
     unsigned long long whitePieces;
     unsigned long long blackPieces;

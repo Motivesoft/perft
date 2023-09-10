@@ -5,15 +5,25 @@
 class Move
 {
 private:
-    unsigned short moveBits;
+    unsigned long moveBits;
 
 public:
-
-    std::string toString() const
+    Move( unsigned long from, unsigned long to ) :
+        moveBits( (from << 6) | to ) 
     {
-        // TODO implement
-
-        return "";
+        
     }
+
+    unsigned short getFrom() const
+    {
+        return (moveBits >> 6) & 0b0000000000111111;
+    }
+
+    unsigned short getTo() const
+    {
+        return moveBits & 0b0000000000111111;
+    }
+
+    std::string toString() const;
 };
 

@@ -3,13 +3,31 @@
 #include <iostream>
 #include <sstream>
 
+#include "BitBoard.h"
+
+// Indices into bitboards
+const unsigned short Board::PAWN = 0;
+const unsigned short Board::KNIGHT = 1;
+const unsigned short Board::BISHOP = 2;
+const unsigned short Board::ROOK = 3;
+const unsigned short Board::QUEEN = 4;
+const unsigned short Board::KING = 5;
+
 void Board::getMoves( std::vector<Move>& moves )
 {
     // TODO return the legal moves
 
-    const size_t bitboardPieceIndex = whiteToMove ? 0 : 6;
+    const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
+
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? whitePieces : blackPieces;
+
+    const unsigned long long& accessibleSquares = emptySquares | attackPieces;
+
+    // Working variable
+    unsigned long long pieces;
+    unsigned long index;
+    unsigned long destination;
 
     // Have a movement and capture mask?
     // - find all free moves (in a direction from a square) 
@@ -17,12 +35,45 @@ void Board::getMoves( std::vector<Move>& moves )
 
     // Pawn (including ep capture and flag set, promotion)
     // Knight
+
+    pieces = bitboards[ bitboardPieceIndex + KNIGHT ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = BitBoard::getKnightMoveMask( index );
+
+        possibleMoves &= accessibleSquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
+
     // Bishop
     // Rook (including castling flag set)
     // Queen
     // King (including castling, castling flag set)
+    
+    pieces = bitboards[ bitboardPieceIndex + KING ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
 
+        unsigned long long possibleMoves = BitBoard::getKingMoveMask( index );
 
+        possibleMoves &= accessibleSquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
 }
 
 Board::State Board::makeMove( const Move& move )

@@ -20,6 +20,8 @@ unsigned long long BitBoard::southEastMoves[ 64 ];
 
 unsigned long long BitBoard::pawnMovesNormalWhite[ 64 ];
 unsigned long long BitBoard::pawnMovesNormalBlack[ 64 ];
+unsigned long long BitBoard::pawnMovesExtendedWhite[ 64 ];
+unsigned long long BitBoard::pawnMovesExtendedBlack[ 64 ];
 unsigned long long BitBoard::pawnMovesAttackWhite[ 64 ];
 unsigned long long BitBoard::pawnMovesAttackBlack[ 64 ];
 
@@ -52,6 +54,8 @@ void BitBoard::initialize()
         // Pawns
         pawnMovesNormalWhite[ square ] = 0;
         pawnMovesNormalBlack[ square ] = 0;
+        pawnMovesExtendedWhite[ square ] = 0;
+        pawnMovesExtendedBlack[ square ] = 0;
         pawnMovesAttackWhite[ square ] = 0;
         pawnMovesAttackBlack[ square ] = 0;
 
@@ -64,7 +68,7 @@ void BitBoard::initialize()
             // Initial double move
             if ( rank == 1 )
             {
-                pawnMovesNormalWhite[ square ] |= ULL_MASK << ( square + 16 );
+                pawnMovesExtendedWhite[ square ] = ULL_MASK << ( square + 16 );
             }
 
             // Capture
@@ -87,7 +91,7 @@ void BitBoard::initialize()
             // Initial double move
             if ( rank == 6 )
             {
-                pawnMovesNormalBlack[ square ] |= ULL_MASK << ( square - 16 );
+                pawnMovesExtendedBlack[ square ] = ULL_MASK << ( square - 16 );
             }
 
             // Capture

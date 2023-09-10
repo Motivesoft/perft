@@ -28,14 +28,52 @@ void Board::getMoves( std::vector<Move>& moves )
     unsigned long long pieces;
     unsigned long index;
     unsigned long destination;
+    unsigned long long baselinePawns = 0;
 
     // Have a movement and capture mask?
     // - find all free moves (in a direction from a square) 
     //   - and then look at the next square to see whether its an attacker
 
     // Pawn (including ep capture and flag set, promotion)
-    // Knight
 
+    pieces = bitboards[ bitboardPieceIndex + PAWN ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = whiteToMove? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
+
+        possibleMoves &= emptySquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            // Remember those that could move at this point as they may also be able to make the extended move
+            baselinePawns |= 1ull << index;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
+
+    pieces = baselinePawns;
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
+
+        possibleMoves &= emptySquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
+
+    // Knight
     pieces = bitboards[ bitboardPieceIndex + KNIGHT ];
     while ( _BitScanForward64( &index, pieces ) )
     {
@@ -57,7 +95,6 @@ void Board::getMoves( std::vector<Move>& moves )
     // Rook (including castling flag set)
     // Queen
     // King (including castling, castling flag set)
-    
     pieces = bitboards[ bitboardPieceIndex + KING ];
     while ( _BitScanForward64( &index, pieces ) )
     {

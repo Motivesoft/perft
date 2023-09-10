@@ -22,6 +22,8 @@ private:
     // Masks for non-sliders
     static unsigned long long pawnMovesNormalWhite[ 64 ];
     static unsigned long long pawnMovesNormalBlack[ 64 ];
+    static unsigned long long pawnMovesExtendedWhite[ 64 ];
+    static unsigned long long pawnMovesExtendedBlack[ 64 ];
     static unsigned long long pawnMovesAttackWhite[ 64 ];
     static unsigned long long pawnMovesAttackBlack[ 64 ];
 
@@ -202,12 +204,32 @@ private:
 public:
     static void initialize();
 
-    inline static unsigned long long getKingMoveMask( unsigned long index )
+    inline static unsigned long long getWhitePawnNormalMoveMask( unsigned long index )
+    {
+        return pawnMovesNormalWhite[ index ];
+    }
+
+    inline static unsigned long long getBlackPawnNormalMoveMask( unsigned long index )
+    {
+        return pawnMovesNormalBlack[ index ];
+    }
+
+    inline static unsigned long long getWhitePawnExtendedMoveMask( unsigned long index )
+    {
+        return pawnMovesExtendedWhite[ index ];
+    }
+
+    inline static unsigned long long getBlackPawnExtendedMoveMask( unsigned long index )
+    {
+        return pawnMovesExtendedBlack[ index ];
+    }
+
+    inline static unsigned long long getKnightMoveMask( unsigned long index )
     {
         return kingMoves[ index ];
     }
 
-    inline static unsigned long long getKnightMoveMask( unsigned long index )
+    inline static unsigned long long getKingMoveMask( unsigned long index )
     {
         return kingMoves[ index ];
     }

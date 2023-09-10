@@ -6,6 +6,23 @@
 void Board::getMoves( std::vector<Move>& moves )
 {
     // TODO return the legal moves
+
+    const size_t bitboardPieceIndex = whiteToMove ? 0 : 6;
+    const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
+    const unsigned long long& attackPieces = whiteToMove ? whitePieces : blackPieces;
+
+    // Have a movement and capture mask?
+    // - find all free moves (in a direction from a square) 
+    //   - and then look at the next square to see whether its an attacker
+
+    // Pawn (including ep capture and flag set, promotion)
+    // Knight
+    // Bishop
+    // Rook (including castling flag set)
+    // Queen
+    // King (including castling, castling flag set)
+
+
 }
 
 Board::State Board::makeMove( const Move& move )
@@ -13,6 +30,14 @@ Board::State Board::makeMove( const Move& move )
     Board::State state( *this );
 
     // TODO the actual make move stuff here
+    //   piece move (including special moves - capture, ep, castling, promotion)
+    //   whiteToMove
+    //   castling
+    //   ep index
+    //   halfMove
+    //   fullMove
+
+    whiteToMove = !whiteToMove;
 
     return state;
 }

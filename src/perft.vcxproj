@@ -74,6 +74,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="Fen.cpp" />
     <ClCompile Include="Move.cpp" />
@@ -82,6 +83,7 @@
     <ClCompile Include="VersionInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BitBoard.h" />
     <ClInclude Include="Board.h" />
     <ClInclude Include="Fen.h" />
     <ClInclude Include="Move.h" />

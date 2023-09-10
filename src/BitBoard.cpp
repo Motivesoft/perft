@@ -17,12 +17,16 @@ unsigned long long BitBoard::pawnMovesNormalBlack[ 64 ];
 unsigned long long BitBoard::pawnMovesAttackWhite[ 64 ];
 unsigned long long BitBoard::pawnMovesAttackBlack[ 64 ];
 
+unsigned long long BitBoard::knightMoves[ 64 ];
+
 void BitBoard::initialize()
 {
     for ( unsigned short square = 0; square < 64; square++ )
     {
         unsigned short rank = BitBoard::rank( square );
         unsigned short file = BitBoard::file( square );
+
+        std::cerr << "Square " << square << " " << (char) ( 'a' + file ) << (char) ( '1' + rank ) << std::endl;
 
         // Sliders
         northMoves[ square ] = createNorthMask( square );
@@ -87,15 +91,71 @@ void BitBoard::initialize()
             }
         }
 
-        std::cerr << "Square " << square << " " << (char) ( 'a' + file ) << (char) ( '1' + rank ) << std::endl;
+        // Knights
+        knightMoves[ square ] = 0;
+
+        if ( rank < 7 )
+        {
+            if ( file < 6 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square + 10 );
+                std::cerr << "1: " << (char) ( 'a' + BitBoard::file( square + 10 ) ) << (char) ( '1' + BitBoard::rank( square + 10 ) ) << std::endl;
+            }
+            if ( file > 1 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square + 6 );
+                std::cerr << "2: " << (char) ( 'a' + BitBoard::file( square + 6 ) ) << (char) ( '1' + BitBoard::rank( square + 6 ) ) << std::endl;
+            }
+        }
+        if ( rank > 0 )
+        {
+            if ( file < 6 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square - 6 );
+                std::cerr << "3: " << (char) ( 'a' + BitBoard::file( square - 6 ) ) << (char) ( '1' + BitBoard::rank( square - 6 ) ) << std::endl;
+            }
+            if ( file > 1 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square - 10 );
+                std::cerr << "4: " << (char) ( 'a' + BitBoard::file( square - 10 ) ) << (char) ( '1' + BitBoard::rank( square - 10 ) ) << std::endl;
+            }
+        }
+        if ( rank < 6 )
+        {
+            if ( file < 7 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square + 17 );
+                std::cerr << "5: " << (char) ( 'a' + BitBoard::file( square + 17 ) ) << (char) ( '1' + BitBoard::rank( square + 17 ) ) << std::endl;
+            }
+            if ( file > 0 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square + 15 );
+                std::cerr << "6: " << (char) ( 'a' + BitBoard::file( square + 15 ) ) << (char) ( '1' + BitBoard::rank( square + 15 ) ) << std::endl;
+            }
+        }
+        if ( rank > 1 )
+        {
+            if ( file < 7 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square - 15 );
+                std::cerr << "7: " << (char) ( 'a' + BitBoard::file( square - 15 ) ) << (char) ( '1' + BitBoard::rank( square - 15 ) ) << std::endl;
+            }
+            if ( file > 0 )
+            {
+                knightMoves[ square ] |= ULL_MASK << ( square - 17 );
+                std::cerr << "8: " << (char) ( 'a' + BitBoard::file( square - 17 ) ) << (char) ( '1' + BitBoard::rank( square - 17 ) ) << std::endl;
+            }
+        }
+
         //dumpBitBoard( northMoves[ square ], " North" );
         //dumpBitBoard( southMoves[ square ], " South" );
         //dumpBitBoard( northMoves[square] | southMoves[ square ], " Combined" );
         //dumpBitBoard( pawnMovesNormalWhite[ square ], " White Pawn" );
-        dumpBitBoard( pawnMovesAttackWhite[ square ], " White Pawn Attack" );
+        //dumpBitBoard( pawnMovesAttackWhite[ square ], " White Pawn Attack" );
         //dumpBitBoard( pawnMovesNormalBlack[ square ], " Black Pawn" );
-        dumpBitBoard( pawnMovesAttackBlack[ square ], " Black Pawn Attack" );
+        //dumpBitBoard( pawnMovesAttackBlack[ square ], " Black Pawn Attack" );
         //dumpBitBoard( northEastMoves[square] | southWestMoves[ square ], " Combined" );
+        dumpBitBoard( knightMoves[ square ], " Knight" );
     }
 }
 

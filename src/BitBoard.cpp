@@ -9,8 +9,14 @@ unsigned long long BitBoard::ULL_MASK = 0b00000000000000000000000000000000000000
 unsigned long long BitBoard::northMoves[ 64 ];
 unsigned long long BitBoard::southMoves[ 64 ];
 
+unsigned long long BitBoard::eastMoves[ 64 ];
+unsigned long long BitBoard::westMoves[ 64 ];
+
 unsigned long long BitBoard::northEastMoves[ 64 ];
 unsigned long long BitBoard::southWestMoves[ 64 ];
+
+unsigned long long BitBoard::northWestMoves[ 64 ];
+unsigned long long BitBoard::southEastMoves[ 64 ];
 
 unsigned long long BitBoard::pawnMovesNormalWhite[ 64 ];
 unsigned long long BitBoard::pawnMovesNormalBlack[ 64 ];
@@ -34,8 +40,11 @@ void BitBoard::initialize()
         northMoves[ square ] = createNorthMask( square );
         southMoves[ square ] = createSouthMask( square );
 
-        //northEastMoves[ square ] = createNorthEastMask( square );
-        //southWestMoves[ square ] = createSouthWestMask( square );
+        northEastMoves[ square ] = createNorthEastMask( square );
+        southWestMoves[ square ] = createSouthWestMask( square );
+
+        northWestMoves[ square ] = createNorthWestMask( square );
+        southEastMoves[ square ] = createSouthEastMask( square );
 
         // Pawns
         pawnMovesNormalWhite[ square ] = 0;
@@ -180,13 +189,15 @@ void BitBoard::initialize()
         //dumpBitBoard( northMoves[ square ], " North" );
         //dumpBitBoard( southMoves[ square ], " South" );
         //dumpBitBoard( northMoves[square] | southMoves[ square ], " Combined" );
+        //dumpBitBoard( northEastMoves[square] | southWestMoves[ square ], " Combined" );
+        dumpBitBoard( northWestMoves[ square ] | southEastMoves[ square ], " Combined" );
         //dumpBitBoard( pawnMovesNormalWhite[ square ], " White Pawn" );
         //dumpBitBoard( pawnMovesAttackWhite[ square ], " White Pawn Attack" );
         //dumpBitBoard( pawnMovesNormalBlack[ square ], " Black Pawn" );
         //dumpBitBoard( pawnMovesAttackBlack[ square ], " Black Pawn Attack" );
         //dumpBitBoard( northEastMoves[square] | southWestMoves[ square ], " Combined" );
         //dumpBitBoard( knightMoves[ square ], " Knight" );
-        dumpBitBoard( kingMoves[ square ], " King" );
+        //dumpBitBoard( kingMoves[ square ], " King" );
     }
 }
 

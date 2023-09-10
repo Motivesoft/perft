@@ -21,7 +21,6 @@ void Board::getMoves( std::vector<Move>& moves )
 
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
-
     const unsigned long long& accessibleSquares = emptySquares | attackPieces;
 
     // Working variable
@@ -56,6 +55,7 @@ void Board::getMoves( std::vector<Move>& moves )
         }
     }
 
+    // Of the pawns that could make a single move, which can also make the double move?
     pieces = baselinePawns;
     while ( _BitScanForward64( &index, pieces ) )
     {

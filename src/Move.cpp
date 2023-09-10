@@ -6,7 +6,9 @@
 Move::Move( unsigned long from, unsigned long to ) :
     moveBits( ( from << 6 ) | to )
 {
+#if _DEBUG
     std::cerr << "From: " << std::hex << from << ". To: " << std::hex << to << ". Move: " << toString() << std::endl;
+#endif
 }
 
 std::string Move::toString() const

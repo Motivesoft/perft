@@ -199,10 +199,10 @@ private:
         return ( square >> 3 ) & RANKFILE_MASK;
     }
 
-    static void dumpBitBoard( unsigned long long mask, const char* title = "" );
-
 public:
     static void initialize();
+
+    static void dumpBitBoard( unsigned long long mask, const char* title = "" );
 
     inline static unsigned long long getWhitePawnNormalMoveMask( unsigned long index )
     {
@@ -226,7 +226,7 @@ public:
 
     inline static unsigned long long getKnightMoveMask( unsigned long index )
     {
-        return kingMoves[ index ];
+        return knightMoves[ index ];
     }
 
     inline static unsigned long long getKingMoveMask( unsigned long index )

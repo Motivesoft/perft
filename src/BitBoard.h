@@ -39,13 +39,14 @@ private:
 
     static unsigned long long createNorthEastMask( unsigned short square )
     {
-        // Zero at the end as that is the home square
         unsigned long long mask = 0ull;
 
         int next = square;
         for ( unsigned short loop = 0; loop < 7; loop++ )
         {
             next += 9;
+
+            // Check for wrap around
             if ( next > 63 )
             {
                 break;
@@ -64,13 +65,14 @@ private:
 
     static unsigned long long createSouthWestMask( unsigned short square )
     {
-        // Zero at the end as that is the home square
         unsigned long long mask = 0ull;
 
         int next = square;
         for ( unsigned short loop = 0; loop < 7; loop++ )
         {
             next -= 9;
+
+            // Check for wrap around
             if ( next < 0 )
             {
                 break;
@@ -89,13 +91,14 @@ private:
 
     static unsigned long long createNorthWestMask( unsigned short square )
     {
-        // Zero at the end as that is the home square
         unsigned long long mask = 0ull;
 
         int next = square;
         for ( unsigned short loop = 0; loop < 7; loop++ )
         {
             next += 7;
+
+            // Check for wrap around
             if ( next > 63 )
             {
                 break;
@@ -114,13 +117,14 @@ private:
 
     static unsigned long long createSouthEastMask( unsigned short square )
     {
-        // Zero at the end as that is the home square
         unsigned long long mask = 0ull;
 
         int next = square;
         for ( unsigned short loop = 0; loop < 7; loop++ )
         {
             next -= 7;
+
+            // Check for wrap around
             if ( next < 0 )
             {
                 break;
@@ -143,6 +147,44 @@ private:
         unsigned long long mask = 0b0000000010000000100000001000000010000000100000001000000010000000;
         
         return mask >> (63-square);
+    }
+
+    static unsigned long long createEastMask( unsigned short square )
+    {
+        unsigned long long mask = 0ull;
+
+        int next = square;
+        for ( unsigned short loop = 0; loop < 7; loop++ )
+        {
+            next--;
+
+            // Check for wrap around
+            if ( file( next ) < file( square ) )
+            {
+                mask |= ULL_MASK << next;
+            }
+        }
+
+        return mask;
+    }
+
+    static unsigned long long createWestMask( unsigned short square )
+    {
+        unsigned long long mask = 0ull;
+
+        int next = square;
+        for ( unsigned short loop = 0; loop < 7; loop++ )
+        {
+            next++;
+
+            // Check for wrap around
+            if ( file( next ) > file( square ) )
+            {
+                mask |= ULL_MASK << next;
+            }
+        }
+
+        return mask;
     }
 
     inline static unsigned short file( unsigned short square )

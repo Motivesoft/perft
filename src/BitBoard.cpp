@@ -40,6 +40,9 @@ void BitBoard::initialize()
         northMoves[ square ] = createNorthMask( square );
         southMoves[ square ] = createSouthMask( square );
 
+        eastMoves[ square ] = createEastMask( square );
+        westMoves[ square ] = createWestMask( square );
+
         northEastMoves[ square ] = createNorthEastMask( square );
         southWestMoves[ square ] = createSouthWestMask( square );
 
@@ -190,7 +193,8 @@ void BitBoard::initialize()
         //dumpBitBoard( southMoves[ square ], " South" );
         //dumpBitBoard( northMoves[square] | southMoves[ square ], " Combined" );
         //dumpBitBoard( northEastMoves[square] | southWestMoves[ square ], " Combined" );
-        dumpBitBoard( northWestMoves[ square ] | southEastMoves[ square ], " Combined" );
+        //dumpBitBoard( northWestMoves[ square ] | southEastMoves[ square ], " Combined" );
+        dumpBitBoard( eastMoves[ square ] | westMoves[ square ], " Combined" );
         //dumpBitBoard( pawnMovesNormalWhite[ square ], " White Pawn" );
         //dumpBitBoard( pawnMovesAttackWhite[ square ], " White Pawn Attack" );
         //dumpBitBoard( pawnMovesNormalBlack[ square ], " Black Pawn" );

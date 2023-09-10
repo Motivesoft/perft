@@ -20,7 +20,7 @@ void Board::getMoves( std::vector<Move>& moves )
     const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
 
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
-    const unsigned long long& attackPieces = whiteToMove ? whitePieces : blackPieces;
+    const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
 
     const unsigned long long& accessibleSquares = emptySquares | attackPieces;
 

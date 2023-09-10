@@ -1,6 +1,13 @@
 #include "Move.h"
 
+#include <iostream>
 #include <sstream>
+
+Move::Move( unsigned long from, unsigned long to ) :
+    moveBits( ( from << 6 ) | to )
+{
+    std::cerr << "From: " << std::hex << from << ". To: " << std::hex << to << ". Move: " << toString() << std::endl;
+}
 
 std::string Move::toString() const
 {
@@ -11,7 +18,7 @@ std::string Move::toString() const
     unsigned char toRank = ( moveBits >> 3 ) & 0b00000111;
     unsigned char toFile = ( moveBits ) & 0b00000111;
 
-    move << (char) ( 'a' + fromRank ) << (char) ( '1' + fromFile ) << (char) ( 'a' + toRank ) << (char) ( '1' + toFile );
+    move << (char) ( 'a' + fromFile ) << (char) ( '1' + fromRank ) << (char) ( 'a' + toFile ) << (char) ( '1' + toRank );
 
     return move.str();
 }

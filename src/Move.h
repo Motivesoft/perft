@@ -8,18 +8,14 @@ private:
     unsigned long moveBits;
 
 public:
-    Move( unsigned long from, unsigned long to ) :
-        moveBits( (from << 6) | to ) 
-    {
-        
-    }
+    Move( unsigned long from, unsigned long to );
 
-    unsigned short getFrom() const
+    inline unsigned short getFrom() const
     {
         return (moveBits >> 6) & 0b0000000000111111;
     }
 
-    unsigned short getTo() const
+    inline unsigned short getTo() const
     {
         return moveBits & 0b0000000000111111;
     }

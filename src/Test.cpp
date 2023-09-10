@@ -8,19 +8,19 @@ bool Test::perftDepth( int depth, const std::string& fen )
 {
     if ( depth < 1 )
     {
-        std::cerr << "Invalid depth: " << depth << std::endl;
+        std::cout << "Invalid depth: " << depth << std::endl;
         return false;
     }
     else if ( fen.empty() )
     {
-        std::cerr << "Missing FEN string" << std::endl;
+        std::cout << "Missing FEN string" << std::endl;
         return false;
     }
 
-    std::cerr << fen << std::endl;
+    std::cout << fen << std::endl;
 
     unsigned int actualResult = perftRun( depth, fen );
-    std::cerr << "  Depth: " << depth << ". Actual: " << actualResult << std::endl;
+    std::cout << "  Depth: " << depth << ". Actual: " << actualResult << std::endl;
 
     return true;
 }
@@ -29,7 +29,7 @@ bool Test::perftFen( const std::string& fenWithResults )
 {
     if ( fenWithResults.empty() )
     {
-        std::cerr << "Missing FEN string" << std::endl;
+        std::cout << "Missing FEN string" << std::endl;
         return false;
     }
 
@@ -46,7 +46,7 @@ bool Test::perftFen( const std::string& fenWithResults )
         int depth;
         unsigned int actualResult;
 
-        std::cerr << fen << std::endl;
+        std::cout << fen << std::endl;
 
         // Split by ";D" and extract depth and expected result
         size_t pos = 0;
@@ -85,7 +85,7 @@ bool Test::perftFen( const std::string& fenWithResults )
         int depth = 1;
         unsigned int actualResult;
 
-        std::cerr << fen << std::endl;
+        std::cout << fen << std::endl;
 
         // Split by comma and infer the depth
         size_t pos = 0;
@@ -109,7 +109,7 @@ bool Test::perftFen( const std::string& fenWithResults )
     }
     else
     {
-        std::cerr << "Missing expected results" << std::endl;
+        std::cout << "Missing expected results" << std::endl;
         return false;
     }
 
@@ -123,7 +123,7 @@ bool Test::perftFile( const std::string& filename )
 
     if ( !file.is_open() )
     {
-        std::cerr << "File was not opened: " << filename << std::endl;
+        std::cout << "File was not opened: " << filename << std::endl;
         return false;
     }
 
@@ -167,7 +167,7 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
     // This will give 0 if elapsed is close to zero - but not sure what to do with that other than continue
     long lnps = std::lround( nps );
 
-    std::cerr << "  Found " << nodes << " nodes in " << elapsed << "s (" << lnps << " nps)" << std::endl;
+    std::cout << "  Found " << nodes << " nodes in " << elapsed << "s (" << lnps << " nps)" << std::endl;
 
     return nodes;
 }
@@ -193,7 +193,7 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
     //        unsigned long moveNodes = perftLoop( depth - 1, tBoard );
     //        nodes += moveNodes;
 
-    //        std::cerr << "  " << move.toString() << " : " << moveNodes << " " << tBoard.toFENString() << std::endl;
+    //        std::cout << "  " << move.toString() << " : " << moveNodes << " " << tBoard.toFENString() << std::endl;
     //    }
     //    else
     //    {
@@ -207,8 +207,8 @@ void Test::report( int depth, unsigned int expected, unsigned int actual )
 {
     if ( expected != actual )
     {
-        std::cerr << "  **ERROR**";
+        std::cout << "  **ERROR**";
     }
 
-    std::cerr << "  Depth: " << depth << ". Expected: " << expected << ". Actual: " << actual << std::endl;
+    std::cout << "  Depth: " << depth << ". Expected: " << expected << ". Actual: " << actual << std::endl;
 }

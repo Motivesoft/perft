@@ -22,10 +22,12 @@ int main( int argc, const char** argv )
     }
     else
     {
-        std::cerr << "No version info available" << std::endl;
+        std::cout << "No version info available" << std::endl;
     }
 
-    //dumpCommandLine( argc, argv );
+#if _DEBUG
+    dumpCommandLine( argc, argv );
+#endif
 
     bool commandLineOK = false;
 
@@ -36,13 +38,13 @@ int main( int argc, const char** argv )
 
     if( !commandLineOK )
     {
-        std::cerr << std::endl;
-        std::cerr << "Usage:" << std::endl;
-        std::cerr << "  perft [depth]         - perform a search using a depth and the standard start position" << std::endl;
-        std::cerr << "  perft [depth] [fen]   - perform a search using a depth and FEN string" << std::endl;
-        std::cerr << "  perft fen [fen]       - perform a search using a FEN string with expected results" << std::endl;
-        std::cerr << "  perft file [filename] - perform searches read from a file as FEN strings with expected results" << std::endl;
-        std::cerr << "  perft help            - this information" << std::endl;
+        std::cout << std::endl;
+        std::cout << "Usage:" << std::endl;
+        std::cout << "  perft [depth]         - perform a search using a depth and the standard start position" << std::endl;
+        std::cout << "  perft [depth] [fen]   - perform a search using a depth and FEN string" << std::endl;
+        std::cout << "  perft fen [fen]       - perform a search using a FEN string with expected results" << std::endl;
+        std::cout << "  perft file [filename] - perform searches read from a file as FEN strings with expected results" << std::endl;
+        std::cout << "  perft help            - this information" << std::endl;
     }
 }
 

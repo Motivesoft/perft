@@ -48,12 +48,14 @@ Board* Board::createBoard( const std::string& fen )
         }
     }
 
+#ifdef _DEBUG
     std::cerr << pieces << std::endl;
     std::cerr << color << std::endl;
     std::cerr << castling << std::endl;
     std::cerr << enPassant << std::endl;
     std::cerr << halfMoveClock << std::endl;
     std::cerr << fullMoveNumber << std::endl;
+#endif
 
     size_t castlingIndex = 0;
     bool castlingRights[] = {false, false, false, false};

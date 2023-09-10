@@ -2,10 +2,14 @@
 
 #include <string>
 
+#include "Board.h"
+
 class Test
 {
 private:
     static unsigned int perftRun( int depth, const std::string& fen, bool divide = true );
+    static unsigned int perftLoop( int depth, Board* board, bool divide = false );
+
     static void report( int depth, unsigned int expected, unsigned int actual );
 
 public:

@@ -8,13 +8,13 @@ class Board
 private:
     bool whiteToMove;
     bool castlingRights[ 4 ];
-    unsigned short enPassantIndex;
+    unsigned long long enPassantIndex;
     unsigned short halfMoveClock;
     unsigned short fullMoveNumber;
 
     Board( bool whiteToMove,
            bool castlingRights[ 4 ],
-           unsigned short enPassantIndex,
+           unsigned long long enPassantIndex,
            unsigned short halfMoveClock,
            unsigned short fullMoveNumber ) :
         whiteToMove( whiteToMove ),
@@ -30,6 +30,8 @@ private:
 
 public:
     static Board* createBoard( const std::string& fen );
+
+    std::string toString() const;
 
     // State* makeMove( const Move& move )
     // undoMove( state )

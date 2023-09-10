@@ -1,6 +1,7 @@
 #include "Board.h"
 
 #include <iostream>
+#include <sstream>
 
 Board* Board::createBoard( const std::string& fen )
 {
@@ -78,7 +79,7 @@ Board* Board::createBoard( const std::string& fen )
         castlingIndex++;
     }
 
-    unsigned short ep = 0;
+    unsigned long long ep = 0;
     if ( enPassant != "-" )
     {
         // Make this a bitboard thing - the bit at (eg) e3 or 0 for no EP
@@ -90,4 +91,54 @@ Board* Board::createBoard( const std::string& fen )
                       ep,
                       atoi( halfMoveClock.c_str() ),
                       atoi( fullMoveNumber.c_str() ) );
+}
+
+std::string Board::toString() const
+{
+    std::stringstream fen;
+
+    // Pieces
+    fen << " ";
+
+    // Color
+    fen << ( whiteToMove ? "w" : "b" ) << " ";
+
+    // Castling Rights
+    if ( castlingRights[ 0 ] )
+    {
+        fen << "K";
+    }
+    if ( castlingRights[ 1 ] )
+    {
+        fen << "Q";
+    }
+    if ( castlingRights[ 2 ] )
+    {
+        fen << "k";
+    }
+    if ( castlingRights[ 3 ] )
+    {
+        fen << "q";
+    }
+    fen << " ";
+
+    // En-Passant
+    unsigned long index;
+    if ( _BitScanForward64( &index, enPassantIndex ) )
+    {
+        fen << (char) ( ( index & 7 ) + 'a' ) << (char) ( ( ( index >> 3 ) & 7 ) + '1' );
+    }
+    else
+    {
+        fen << "-";
+    }
+    fen << " ";
+
+    // Half Move Clock
+    fen << halfMoveClock << " ";
+
+    // Full Move Number
+    fen << fullMoveNumber << " ";
+
+    return fen.str();
 }

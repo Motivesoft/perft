@@ -147,13 +147,15 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
 {
     // Prep here
 
-
+    Board* board = Board::createBoard( fen );
+    std::cout << board->toString() << std::endl;
+    return 0;
 
     // Run the test
 
     clock_t start = clock();
 
-    unsigned int nodes = 0;// = perftImpl( depth, board, true );
+    unsigned int nodes = perftLoop( depth, board, true );
 
     clock_t end = clock();
 
@@ -170,6 +172,37 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
     return nodes;
 }
 
+unsigned int Test::perftLoop( int depth, Board* board, bool divide )
+{
+    unsigned int nodes = 0;
+
+    if ( depth == 0 )
+    {
+        return 1;
+    }
+
+    //std::vector<Move> moves = board->getMoves();
+
+    //for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); it++ )
+    //{
+    //    Move& move = *it;
+    //    Board tBoard = board->makeMove( move );
+
+    //    if ( divide )
+    //    {
+    //        unsigned long moveNodes = perftLoop( depth - 1, tBoard );
+    //        nodes += moveNodes;
+
+    //        std::cerr << "  " << move.toString() << " : " << moveNodes << " " << tBoard.toFENString() << std::endl;
+    //    }
+    //    else
+    //    {
+    //        nodes += perftLoop( depth - 1, tBoard );
+    //    }
+    //}
+
+    return nodes;
+}
 void Test::report( int depth, unsigned int expected, unsigned int actual )
 {
     if ( expected != actual )

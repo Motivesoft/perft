@@ -36,8 +36,6 @@ void BitBoard::initialize()
         unsigned short rank = BitBoard::rank( square );
         unsigned short file = BitBoard::file( square );
 
-        std::cerr << "Square " << square << " " << (char) ( 'a' + file ) << (char) ( '1' + rank ) << std::endl;
-
         // Sliders
         northMoves[ square ] = createNorthMask( square );
         southMoves[ square ] = createSouthMask( square );
@@ -193,6 +191,8 @@ void BitBoard::initialize()
         {
             kingMoves[ square ] |= ULL_MASK << ( square + 1 );
         }
+
+        //std::cerr << "Square " << square << " " << (char) ( 'a' + file ) << (char) ( '1' + rank ) << std::endl;
         //dumpBitBoard( northMoves[ square ], " North" );
         //dumpBitBoard( southMoves[ square ], " South" );
         //dumpBitBoard( northMoves[square] | southMoves[ square ], " Combined" );

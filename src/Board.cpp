@@ -13,209 +13,36 @@ const unsigned short Board::ROOK = 3;
 const unsigned short Board::QUEEN = 4;
 const unsigned short Board::KING = 5;
 
+
 void Board::getMoves( std::vector<Move>& moves )
 {
     const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
-    const unsigned short promotionBaseline = whiteToMove ? 7 : 0;
 
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
     const unsigned long long& accessibleSquares = emptySquares | attackPieces;
-
-    // Working variables
-    unsigned long long pieces;
-    unsigned long index;
-    unsigned long destination;
-    unsigned long long baselinePawns = 0;
 
     // Have a movement and capture mask?
     // - find all free moves (in a direction from a square) 
     //   - and then look at the next square to see whether its an attacker
 
     // Pawn (including ep capture, promotion)
-
-    pieces = bitboards[ bitboardPieceIndex + PAWN ];
-    while ( _BitScanForward64( &index, pieces ) )
-    {
-        pieces ^= 1ull << index;
-
-        unsigned long long possibleMoves = whiteToMove? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
-
-        possibleMoves &= emptySquares;
-
-        while ( _BitScanForward64( &destination, possibleMoves ) )
-        {
-            possibleMoves ^= 1ull << destination;
-
-            // Remember those that could move at this point as they may also be able to make the extended move
-            baselinePawns |= 1ull << index;
-
-            moves.push_back( Move( index, destination ) );
-        }
-    }
-
-    // Of the pawns that could make a single move, which can also make the double move?
-    pieces = baselinePawns;
-    while ( _BitScanForward64( &index, pieces ) )
-    {
-        pieces ^= 1ull << index;
-
-        unsigned short rank = ( index >> 3 ) & 0b00000111;
-        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
-
-        possibleMoves &= emptySquares;
-
-        while ( _BitScanForward64( &destination, possibleMoves ) )
-        {
-            possibleMoves ^= 1ull << destination;
-
-            if ( rank == promotionBaseline )
-            {
-                moves.push_back( Move( index, destination, Move::KNIGHT ) );
-                moves.push_back( Move( index, destination, Move::BISHOP ) );
-                moves.push_back( Move( index, destination, Move::ROOK ) );
-                moves.push_back( Move( index, destination, Move::QUEEN ) );
-            }
-            else
-            {
-                moves.push_back( Move( index, destination ) );
-            }
-        }
-    }
-
-    pieces = bitboards[ bitboardPieceIndex + PAWN ];
-    while ( _BitScanForward64( &index, pieces ) )
-    {
-        pieces ^= 1ull << index;
-
-        unsigned short rank = ( index >> 3 ) & 0b00000111;
-        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
-
-        possibleMoves &= (attackPieces | enPassantIndex);
-
-        while ( _BitScanForward64( &destination, possibleMoves ) )
-        {
-            possibleMoves ^= 1ull << destination;
-
-            if ( rank == promotionBaseline )
-            {
-                moves.push_back( Move( index, destination, Move::KNIGHT ) );
-                moves.push_back( Move( index, destination, Move::BISHOP ) );
-                moves.push_back( Move( index, destination, Move::ROOK ) );
-                moves.push_back( Move( index, destination, Move::QUEEN ) );
-            }
-            else
-            {
-                moves.push_back( Move( index, destination ) );
-            }
-        }
-    }
+    getPawnMoves( moves, bitboardPieceIndex + PAWN, accessibleSquares, attackPieces );
 
     // Knight
-    pieces = bitboards[ bitboardPieceIndex + KNIGHT ];
-    while ( _BitScanForward64( &index, pieces ) )
-    {
-        pieces ^= 1ull << index;
-
-        unsigned long long possibleMoves = BitBoard::getKnightMoveMask( index );
-
-        possibleMoves &= accessibleSquares;
-
-        while ( _BitScanForward64( &destination, possibleMoves ) )
-        {
-            possibleMoves ^= 1ull << destination;
-
-            moves.push_back( Move( index, destination ) );
-        }
-    }
+    getKnightMoves( moves, bitboardPieceIndex + KNIGHT, accessibleSquares );
 
     // Bishop + Queen
+    getBishopMoves( moves, bitboardPieceIndex + BISHOP, accessibleSquares );
 
     // Rook (including castling flag set) + Queen
+    getRookMoves( moves, bitboardPieceIndex + ROOK, accessibleSquares );
 
-    pieces = bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ];
-    while ( _BitScanForward64( &index, pieces ) )
-    {
-        pieces ^= 1ull << index;
-
-        //////////////// TODO clever sliding logic here
-        //unsigned long long possibleMoves = BitBoard::getEastMoveMask( index );
-
-        //possibleMoves &= accessibleSquares;
-
-        //while ( _BitScanForward64( &destination, possibleMoves ) )
-        //{
-        //    possibleMoves ^= 1ull << destination;
-
-        //    moves.push_back( Move( index, destination ) );
-        //}
-    }
-
-    // Queen - already covered
+    // Queen
+    getQueenMoves( moves, bitboardPieceIndex + QUEEN, accessibleSquares );
 
     // King (including castling, castling flag set)
-
-    pieces = bitboards[ bitboardPieceIndex + KING ];
-    while ( _BitScanForward64( &index, pieces ) )
-    {
-        pieces ^= 1ull << index;
-
-        unsigned long long possibleMoves = BitBoard::getKingMoveMask( index );
-
-        possibleMoves &= accessibleSquares;
-
-        while ( _BitScanForward64( &destination, possibleMoves ) )
-        {
-            possibleMoves ^= 1ull << destination;
-
-            moves.push_back( Move( index, destination ) );
-        }
-
-        // Check whether castling is a possibility
-        unsigned long long castlingMask;
-        if ( whiteToMove )
-        {
-            if ( castlingRights[ 0 ] )
-            {
-                castlingMask = BitBoard::getWhiteKingsideCastlingMask();
-
-                if ( ( emptySquares & castlingMask ) == castlingMask )
-                {
-                    moves.push_back( Move( index, index + 2 ) );
-                }
-            }
-            if ( castlingRights[ 1 ] )
-            {
-                castlingMask = BitBoard::getWhiteQueensideCastlingMask();
-
-                if ( ( emptySquares & castlingMask ) == castlingMask )
-                {
-                    moves.push_back( Move( index, index - 2 ) );
-                }
-            }
-        }
-        else
-        {
-            if ( castlingRights[ 2 ] )
-            {
-                castlingMask = BitBoard::getBlackKingsideCastlingMask();
-
-                if ( ( emptySquares & castlingMask ) == castlingMask )
-                {
-                    moves.push_back( Move( index, index + 2 ) );
-                }
-            }
-            if ( castlingRights[ 3 ] )
-            {
-                castlingMask = BitBoard::getBlackQueensideCastlingMask();
-
-                if ( ( emptySquares & castlingMask ) == castlingMask )
-                {
-                    moves.push_back( Move( index, index - 2 ) );
-                }
-            }
-        }
-    }
+    getKingMoves( moves, bitboardPieceIndex + KING, accessibleSquares );
 }
 
 Board::State Board::makeMove( const Move& move )
@@ -595,5 +422,243 @@ void Board::State::apply( Board& board ) const
     for ( size_t loop = 0; loop < 4; loop++ )
     {
         board.castlingRights[ loop ] = castlingRights[ loop ];
+    }
+}
+
+void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )
+{
+    const unsigned short promotionRank = whiteToMove ? 7 : 0;
+    const unsigned short homeRank = whiteToMove ? 1 : 6;
+
+    unsigned long long pieces;
+    unsigned long index;
+    unsigned long destination;
+    unsigned long long baselinePawns = 0;
+
+    pieces = bitboards[ pieceIndex ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned short rank = ( index >> 3 ) & 0b00000111;
+        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
+
+        possibleMoves &= emptySquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            // Check whether any are elegible to make the extended move (e.g. e2e4) or promote
+            if ( rank == homeRank )
+            {
+                baselinePawns |= 1ull << index;
+                moves.push_back( Move( index, destination ) );
+            }
+            else if ( rank == promotionRank )
+            {
+                moves.push_back( Move( index, destination, Move::KNIGHT ) );
+                moves.push_back( Move( index, destination, Move::BISHOP ) );
+                moves.push_back( Move( index, destination, Move::ROOK ) );
+                moves.push_back( Move( index, destination, Move::QUEEN ) );
+            }
+            else
+            {
+                moves.push_back( Move( index, destination ) );
+            }
+        }
+    }
+
+    // Of the pawns that could make a single move, which can also make the double move?
+    pieces = baselinePawns;
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned short rank = ( index >> 3 ) & 0b00000111;
+        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
+
+        possibleMoves &= emptySquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
+
+    // Captures, including ep
+    pieces = bitboards[ pieceIndex ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned short rank = ( index >> 3 ) & 0b00000111;
+        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
+
+        possibleMoves &= ( attackPieces | enPassantIndex );
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            if ( rank == promotionRank )
+            {
+                moves.push_back( Move( index, destination, Move::KNIGHT ) );
+                moves.push_back( Move( index, destination, Move::BISHOP ) );
+                moves.push_back( Move( index, destination, Move::ROOK ) );
+                moves.push_back( Move( index, destination, Move::QUEEN ) );
+            }
+            else
+            {
+                moves.push_back( Move( index, destination ) );
+            }
+        }
+    }
+}
+
+void Board::getKnightMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares )
+{
+    unsigned long long pieces;
+    unsigned long index;
+    unsigned long destination;
+
+    pieces = bitboards[ pieceIndex ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = BitBoard::getKnightMoveMask( index );
+
+        possibleMoves &= accessibleSquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
+}
+
+void Board::getBishopMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares )
+{
+    unsigned long long pieces;
+    unsigned long index;
+    unsigned long destination;
+
+    pieces = bitboards[ pieceIndex ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+    }
+}
+
+void Board::getRookMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares )
+{
+    unsigned long long pieces;
+    unsigned long index;
+    unsigned long destination;
+
+    pieces = bitboards[ pieceIndex ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = BitBoard::getEastMoveMask( index );
+
+        possibleMoves &= accessibleSquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
+}
+
+void Board::getQueenMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares )
+{
+    unsigned long long pieces;
+    unsigned long index;
+    unsigned long destination;
+
+    pieces = bitboards[ pieceIndex ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+    }
+}
+
+void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares )
+{
+    unsigned long long pieces;
+    unsigned long index;
+    unsigned long destination;
+
+    pieces = bitboards[ pieceIndex ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = BitBoard::getKingMoveMask( index );
+
+        possibleMoves &= accessibleSquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+
+        // Check whether castling is a possibility
+        unsigned long long castlingMask;
+        if ( whiteToMove )
+        {
+            if ( castlingRights[ 0 ] )
+            {
+                castlingMask = BitBoard::getWhiteKingsideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index + 2 ) );
+                }
+            }
+            if ( castlingRights[ 1 ] )
+            {
+                castlingMask = BitBoard::getWhiteQueensideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index - 2 ) );
+                }
+            }
+        }
+        else
+        {
+            if ( castlingRights[ 2 ] )
+            {
+                castlingMask = BitBoard::getBlackKingsideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index + 2 ) );
+                }
+            }
+            if ( castlingRights[ 3 ] )
+            {
+                castlingMask = BitBoard::getBlackQueensideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index - 2 ) );
+                }
+            }
+        }
     }
 }

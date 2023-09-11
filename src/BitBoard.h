@@ -37,7 +37,9 @@ private:
     static unsigned long long blackKingsideCastlingMask;
     static unsigned long long blackQueensideCastlingMask;
 
-    static unsigned long long createNorthMask( unsigned short square )
+    // Helper methods
+
+    static unsigned long long createNorthMask( const unsigned short square )
     {
         // Zero at the end as that is the home square
         unsigned long long mask = 0b0000000100000001000000010000000100000001000000010000000100000000;
@@ -45,7 +47,53 @@ private:
         return mask << square;
     }
 
-    static unsigned long long createNorthEastMask( unsigned short square )
+    static unsigned long long createSouthMask( const unsigned short square )
+    {
+        // Zero at the end as that is the home square
+        unsigned long long mask = 0b0000000010000000100000001000000010000000100000001000000010000000;
+
+        return mask >> ( 63 - square );
+    }
+
+    static unsigned long long createEastMask( const unsigned short square )
+    {
+        unsigned long long mask = 0ull;
+
+        int next = square;
+        for ( unsigned short loop = 0; loop < 7; loop++ )
+        {
+            next--;
+
+            // Check for wrap around
+            if ( file( next ) < file( square ) )
+            {
+                mask |= 1ull << next;
+            }
+        }
+
+        return mask;
+    }
+
+    static unsigned long long createWestMask( const unsigned short square )
+    {
+        unsigned long long mask = 0ull;
+
+        int next = square;
+        for ( unsigned short loop = 0; loop < 7; loop++ )
+        {
+            next++;
+
+            // Check for wrap around
+            if ( file( next ) > file( square ) )
+            {
+                mask |= 1ull << next;
+            }
+        }
+
+        return mask;
+    }
+
+    static unsigned long long createNorthEastMask( const unsigned short square )
     {
         unsigned long long mask = 0ull;
 
@@ -71,7 +119,7 @@ private:
         return mask;
     }
 
-    static unsigned long long createSouthWestMask( unsigned short square )
+    static unsigned long long createSouthWestMask( const unsigned short square )
     {
         unsigned long long mask = 0ull;
 
@@ -97,7 +145,7 @@ private:
         return mask;
     }
 
-    static unsigned long long createNorthWestMask( unsigned short square )
+    static unsigned long long createNorthWestMask( const unsigned short square )
     {
         unsigned long long mask = 0ull;
 
@@ -123,7 +171,7 @@ private:
         return mask;
     }
 
-    static unsigned long long createSouthEastMask( unsigned short square )
+    static unsigned long long createSouthEastMask( const unsigned short square )
     {
         unsigned long long mask = 0ull;
 
@@ -149,58 +197,12 @@ private:
         return mask;
     }
 
-    static unsigned long long createSouthMask( unsigned short square )
-    {
-        // Zero at the end as that is the home square
-        unsigned long long mask = 0b0000000010000000100000001000000010000000100000001000000010000000;
-        
-        return mask >> (63-square);
-    }
-
-    static unsigned long long createEastMask( unsigned short square )
-    {
-        unsigned long long mask = 0ull;
-
-        int next = square;
-        for ( unsigned short loop = 0; loop < 7; loop++ )
-        {
-            next--;
-
-            // Check for wrap around
-            if ( file( next ) < file( square ) )
-            {
-                mask |= 1ull << next;
-            }
-        }
-
-        return mask;
-    }
-
-    static unsigned long long createWestMask( unsigned short square )
-    {
-        unsigned long long mask = 0ull;
-
-        int next = square;
-        for ( unsigned short loop = 0; loop < 7; loop++ )
-        {
-            next++;
-
-            // Check for wrap around
-            if ( file( next ) > file( square ) )
-            {
-                mask |= 1ull << next;
-            }
-        }
-
-        return mask;
-    }
-
-    inline static unsigned short file( unsigned short square )
+    inline static unsigned short file( const unsigned short square )
     {
         return square & RANKFILE_MASK;
     }
 
-    inline static unsigned short rank( unsigned short square )
+    inline static unsigned short rank( const unsigned short square )
     {
         return ( square >> 3 ) & RANKFILE_MASK;
     }
@@ -208,34 +210,34 @@ private:
 public:
     static void initialize();
 
-    static void dumpBitBoard( unsigned long long mask, const char* title = "" );
+    static void dumpBitBoard( const unsigned long long mask, const char* title = "" );
 
-    inline static unsigned long long getWhitePawnNormalMoveMask( unsigned long index )
+    inline static unsigned long long getWhitePawnNormalMoveMask( const unsigned long index )
     {
         return pawnMovesNormalWhite[ index ];
     }
 
-    inline static unsigned long long getBlackPawnNormalMoveMask( unsigned long index )
+    inline static unsigned long long getBlackPawnNormalMoveMask( const unsigned long index )
     {
         return pawnMovesNormalBlack[ index ];
     }
 
-    inline static unsigned long long getWhitePawnExtendedMoveMask( unsigned long index )
+    inline static unsigned long long getWhitePawnExtendedMoveMask( const unsigned long index )
     {
         return pawnMovesExtendedWhite[ index ];
     }
 
-    inline static unsigned long long getBlackPawnExtendedMoveMask( unsigned long index )
+    inline static unsigned long long getBlackPawnExtendedMoveMask( const unsigned long index )
     {
         return pawnMovesExtendedBlack[ index ];
     }
 
-    inline static unsigned long long getWhitePawnAttackMoveMask( unsigned long index )
+    inline static unsigned long long getWhitePawnAttackMoveMask( const unsigned long index )
     {
         return pawnMovesAttackWhite[ index ];
     }
 
-    inline static unsigned long long getBlackPawnAttackMoveMask( unsigned long index )
+    inline static unsigned long long getBlackPawnAttackMoveMask( const unsigned long index )
     {
         return pawnMovesAttackBlack[ index ];
     }
@@ -245,9 +247,14 @@ public:
         return knightMoves[ index ];
     }
 
-    inline static unsigned long long getKingMoveMask( unsigned long index )
+    inline static unsigned long long getKingMoveMask( const unsigned long index )
     {
         return kingMoves[ index ];
+    }
+
+    inline static unsigned long long getEastMoveMask( const unsigned long index )
+    {
+        return eastMoves[ index ];
     }
 
     inline static unsigned long long getWhiteKingsideCastlingMask()

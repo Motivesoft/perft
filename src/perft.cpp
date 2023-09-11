@@ -34,6 +34,8 @@ int main( int argc, const char** argv )
 
     if ( argc > 1 )
     {
+        BitBoard::initialize();
+
         commandLineOK = processCommandLine( argc, argv );
     }
 
@@ -51,12 +53,26 @@ int main( int argc, const char** argv )
 
 bool processCommandLine( int argc, const char** argv )
 {
-    BitBoard::initialize();
+    std::vector<std::string> args;
+    bool divide = false;
+
+    for ( size_t loop = 1; loop < argc; loop++ )
+    {
+        std::string arg = argv[ loop ];
+        if ( arg == "-divide" )
+        {
+            divide = true;
+        }
+        else
+        {
+            args.push_back( arg );
+        }
+    }
 
     // Work out what we are doing
     bool executed = false;
 
-    std::string arg = argv[ 1 ];
+    std::string arg = args[ 0 ];
 
     // If the first arg is a depth (all digits, not a FEN string), then process it accordingly
     bool isDepth = true;
@@ -74,50 +90,50 @@ bool processCommandLine( int argc, const char** argv )
 
         int depth = atoi( arg.c_str() );
 
-        if ( argc < 3 )
+        if ( args.size() == 1 )
         {
-            executed = Test::perftDepth( depth, Fen::startingPosition );
+            executed = Test::perftDepth( depth, Fen::startingPosition, divide );
         }
         else
         {
             std::stringstream fen;
 
-            for ( int loop = 2; loop < argc; loop++ )
+            for ( int loop = 1; loop < args.size(); loop++ )
             {
-                if ( loop > 2 )
+                if ( loop > 1 )
                 {
                     fen << " ";
                 }
 
-                fen << argv[ loop ];
+                fen << args[ loop ];
             }
 
-            executed = Test::perftDepth( depth, fen.str().c_str() );
+            executed = Test::perftDepth( depth, fen.str().c_str(), divide );
         }
     }
     else if ( arg == "fen" )
     {
         std::stringstream fen;
 
-        for ( int loop = 2; loop < argc; loop++ )
+        for ( int loop = 1; loop < args.size(); loop++ )
         {
-            if ( loop > 2 )
+            if ( loop > 1 )
             {
                 fen << " ";
             }
 
-            fen << argv[ loop ];
+            fen << args[ loop ];
         }
 
-        executed = Test::perftFen( fen.str().c_str() );
+        executed = Test::perftFen( fen.str().c_str(), divide );
     }
     else if ( arg == "file" )
     {
-        if ( argc > 2 )
+        if ( arg.size() > 1 )
         {
-            std::string filename = argv[ 2 ];
+            std::string filename = args[ 2 ];
 
-            executed = Test::perftFile( filename.c_str() );
+            executed = Test::perftFile( filename.c_str(), divide );
         }
     }
 

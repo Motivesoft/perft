@@ -4,7 +4,7 @@
 #include "Fen.h"
 #include "Test.h"
 
-bool Test::perftDepth( int depth, const std::string& fen )
+bool Test::perftDepth( int depth, const std::string& fen, bool divide )
 {
     if ( depth < 1 )
     {
@@ -19,13 +19,13 @@ bool Test::perftDepth( int depth, const std::string& fen )
 
     std::cout << fen << std::endl;
 
-    unsigned int actualResult = perftRun( depth, fen );
+    unsigned int actualResult = perftRun( depth, fen, divide );
     std::cout << "  Depth: " << depth << ". Actual: " << actualResult << std::endl;
 
     return true;
 }
 
-bool Test::perftFen( const std::string& fenWithResults )
+bool Test::perftFen( const std::string& fenWithResults, bool divide )
 {
     if ( fenWithResults.empty() )
     {
@@ -60,7 +60,7 @@ bool Test::perftFen( const std::string& fenWithResults )
             if ( split != SIZE_MAX )
             {
                 depth = atoi( token.substr( 0, split ).c_str() );
-                actualResult = perftRun( depth, fen );
+                actualResult = perftRun( depth, fen, divide );
                 report( depth, atoi( token.substr( split + 1 ).c_str() ), actualResult );
             }
 
@@ -73,7 +73,7 @@ bool Test::perftFen( const std::string& fenWithResults )
         if ( split != SIZE_MAX )
         {
             depth = atoi( token.substr( 0, split ).c_str() );
-            actualResult = perftRun( depth, fen );
+            actualResult = perftRun( depth, fen, divide );
             report( depth, atoi( token.substr( split + 1 ).c_str() ), actualResult );
         }
     }
@@ -95,7 +95,7 @@ bool Test::perftFen( const std::string& fenWithResults )
         {
             token = results.substr( 0, pos );
 
-            actualResult = perftRun( depth, fen );
+            actualResult = perftRun( depth, fen, divide );
             report( depth, atoi( token.c_str() ), actualResult );
 
             results.erase( 0, pos + delimiter.length() );
@@ -104,7 +104,7 @@ bool Test::perftFen( const std::string& fenWithResults )
 
         // Get the last one
         token = results;
-        actualResult = perftRun( depth, fen );
+        actualResult = perftRun( depth, fen, divide );
         report( depth, atoi( token.c_str() ), actualResult );
     }
     else
@@ -116,7 +116,7 @@ bool Test::perftFen( const std::string& fenWithResults )
     return true;
 }
 
-bool Test::perftFile( const std::string& filename )
+bool Test::perftFile( const std::string& filename, bool divide )
 {
     std::fstream file;
     file.open( filename, std::ios::in );
@@ -137,7 +137,7 @@ bool Test::perftFile( const std::string& filename )
         }
 
         // This just happens to do the processing we want, although we are not providing a depth this way
-        perftFen( line );
+        perftFen( line, divide );
     }
 
     return true;
@@ -162,7 +162,7 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
 
     clock_t start = clock();
 
-    unsigned int nodes = perftLoop( depth, board, true );
+    unsigned int nodes = perftLoop( depth, board, divide );
 
     clock_t end = clock();
 
@@ -199,14 +199,14 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
 
         if ( divide )
         {
-            unsigned long moveNodes = perftLoop( depth - 1, board );
+            unsigned long moveNodes = perftLoop( depth - 1, board, false );
             nodes += moveNodes;
 
             std::cout << "  " << move.toString() << " : " << moveNodes << " " << board->toString() << std::endl;
         }
         else
         {
-            nodes += perftLoop( depth - 1, board );
+            nodes += perftLoop( depth - 1, board, false );
         }
 
         board->unmakeMove( undo );

@@ -138,16 +138,17 @@ void Board::getMoves( std::vector<Move>& moves )
     {
         pieces ^= 1ull << index;
 
-        unsigned long long possibleMoves = BitBoard::getKingMoveMask( index );
+        //////////////// TODO clever sliding logic here
+        //unsigned long long possibleMoves = BitBoard::getEastMoveMask( index );
 
-        possibleMoves &= accessibleSquares;
+        //possibleMoves &= accessibleSquares;
 
-        while ( _BitScanForward64( &destination, possibleMoves ) )
-        {
-            possibleMoves ^= 1ull << destination;
+        //while ( _BitScanForward64( &destination, possibleMoves ) )
+        //{
+        //    possibleMoves ^= 1ull << destination;
 
-            moves.push_back( Move( index, destination ) );
-        }
+        //    moves.push_back( Move( index, destination ) );
+        //}
     }
 
     // Queen - already covered

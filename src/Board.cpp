@@ -149,7 +149,7 @@ Board::State Board::makeMove( const Move& move )
 
     whiteToMove = !whiteToMove;
 
-    resetMasks();
+    //resetMasks();
 
     return state;
 }
@@ -157,8 +157,6 @@ Board::State Board::makeMove( const Move& move )
 void Board::unmakeMove( const Board::State& state )
 {
     state.apply( *this );
-
-    resetMasks();
 }
 
 Board* Board::createBoard( const std::string& fen )
@@ -207,11 +205,7 @@ Board* Board::createBoard( const std::string& fen )
     }
 
     // Two sets of bitboards, white and black
-    unsigned long long bitboards[ 12 ];
-    for ( size_t loop = 0; loop < 12; loop++ )
-    {
-        bitboards[ loop ] = 0;
-    }
+    std::array<unsigned long long, 12> bitboards = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
     // Unpack FEN board representation
     unsigned long long mask = 1ull << 56;
@@ -270,7 +264,7 @@ Board* Board::createBoard( const std::string& fen )
     bool whiteToPlay = color == "w";
 
     size_t castlingIndex = 0;
-    bool castlingRights[] = {false, false, false, false};
+    std::array<bool, 4> castlingRights = { false, false, false, false };
 
     if ( castling[ castlingIndex ] == 'K' )
     {
@@ -475,52 +469,33 @@ unsigned short Board::bitboardArrayIndexFromPiece( const char piece )
 }
 
 Board::State::State( const Board& board ) :
+    bitboards( board.bitboards ),
     whiteToMove( board.whiteToMove ),
+    castlingRights( board.castlingRights ),
     enPassantIndex( board.enPassantIndex ),
     halfMoveClock( board.halfMoveClock ),
-    fullMoveNumber( board.fullMoveNumber )
+    fullMoveNumber( board.fullMoveNumber ),
+    boardLUT( board.boardLUT ),
+    whitePieces( board.whitePieces ),
+    blackPieces( board.blackPieces ),
+    allPieces( board.allPieces ),
+    emptySquares( board.emptySquares )
 {
-    for ( size_t loop = 0; loop < 12; loop++ )
-    {
-        this->bitboards[ loop ] = board.bitboards[ loop ];
-    }
-
-    for ( size_t loop = 0; loop < 4; loop++ )
-    {
-        this->castlingRights[ loop ] = board.castlingRights[ loop ];
-    }
 }
 
 void Board::State::apply( Board& board ) const
 {
+    board.bitboards = bitboards;
     board.whiteToMove = whiteToMove;
+    board.castlingRights = castlingRights;
     board.enPassantIndex = enPassantIndex;
     board.halfMoveClock = halfMoveClock;
     board.fullMoveNumber = fullMoveNumber;
-
-    board.allPieces = board.whitePieces = board.blackPieces = board.emptySquares = 0;
-
-    for ( size_t loop = 0; loop < 12; loop++ )
-    {
-        board.bitboards[ loop ] = bitboards[ loop ];
-
-        if ( loop < 6 )
-        {
-            board.whitePieces |= bitboards[ loop ];
-        }
-        else
-        {
-            board.blackPieces |= bitboards[ loop ];
-        }
-    }
-
-    board.allPieces = board.whitePieces | board.blackPieces;
-    board.emptySquares = ~board.allPieces;
-
-    for ( size_t loop = 0; loop < 4; loop++ )
-    {
-        board.castlingRights[ loop ] = castlingRights[ loop ];
-    }
+    board.boardLUT = boardLUT;
+    board.whitePieces = whitePieces;
+    board.blackPieces = blackPieces;
+    board.allPieces = allPieces;
+    board.emptySquares = emptySquares;
 }
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )

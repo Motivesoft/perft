@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -16,9 +17,9 @@ private:
     static const unsigned short KING;
 
     // Holds references to bitboards - e.g. 0 (a1) will point to the white rook bitboard with the start position
-    unsigned short boardLUT[ 64 ];
+    std::array<unsigned short, 64> boardLUT;
 
-    unsigned long long bitboards[ 12 ];
+    std::array<unsigned long long, 12> bitboards;
     unsigned long long whitePieces;
     unsigned long long blackPieces;
     unsigned long long allPieces;
@@ -26,38 +27,25 @@ private:
 
     bool whiteToMove;
 
-    bool castlingRights[ 4 ];
+    std::array<bool, 4> castlingRights;
 
     unsigned long long enPassantIndex;
 
     unsigned short halfMoveClock;
     unsigned short fullMoveNumber;
 
-    Board( unsigned long long bitboards[],
+    Board( std::array<unsigned long long, 12> bitboards,
            bool whiteToMove,
-           bool castlingRights[ 4 ],
+           std::array<bool, 4> castlingRights,
            unsigned long long enPassantIndex,
            unsigned short halfMoveClock,
            unsigned short fullMoveNumber ) :
+        bitboards( bitboards ),
         whiteToMove( whiteToMove ),
+        castlingRights( castlingRights ),
         enPassantIndex( enPassantIndex ),
         halfMoveClock( halfMoveClock ),
         fullMoveNumber( fullMoveNumber )
-    {
-        for ( size_t loop = 0; loop < 12; loop++ )
-        {
-            this->bitboards[ loop ] = bitboards[ loop ];
-        }
-
-        for ( size_t loop = 0; loop < 4; loop++ )
-        {
-            this->castlingRights[ loop ] = castlingRights[ loop ];
-        }
-
-        resetMasks();
-    }
-
-    void resetMasks()
     {
         allPieces = whitePieces = blackPieces = emptySquares = 0;
 
@@ -78,8 +66,8 @@ private:
                 blackPieces |= bitboards[ loop ];
             }
 
-            unsigned long long bitboard = bitboards[ loop ];
             unsigned long index;
+            unsigned long long bitboard = bitboards[ loop ];
             while ( _BitScanForward64( &index, bitboard ) )
             {
                 bitboard ^= 1ull << index;
@@ -89,13 +77,6 @@ private:
 
         allPieces = whitePieces | blackPieces;
         emptySquares = ~allPieces;
-
-        // Build a lookup table that goes from board index (0-63) to bitboardArrayIndex (0-11 or USHRT_MAX)
-        //for ( unsigned short loop = 0; loop < 64; loop++ )
-        //{
-        //    unsigned short bitboardArrayIndex = bitboardArrayIndexFromBit( 1ull << loop );
-        //    boardLUT[ loop ] = bitboardArrayIndex;
-        //}
     }
 
     // Instance methods
@@ -145,16 +126,19 @@ public:
     class State
     {
     private:
-        unsigned long long bitboards[ 12 ];
-
+        std::array<unsigned long long, 12> bitboards;
         bool whiteToMove;
-
-        bool castlingRights[ 4 ];
-
+        std::array<bool, 4> castlingRights;
         unsigned long long enPassantIndex;
-
         unsigned short halfMoveClock;
         unsigned short fullMoveNumber;
+
+        std::array<unsigned short, 64> boardLUT;
+
+        unsigned long long whitePieces;
+        unsigned long long blackPieces;
+        unsigned long long allPieces;
+        unsigned long long emptySquares;
 
     public:
         State( const Board& board );

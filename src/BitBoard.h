@@ -252,9 +252,24 @@ public:
         return kingMoves[ index ];
     }
 
+    inline static unsigned long long getNorthMoveMask( const unsigned long index )
+    {
+        return northMoves[ index ];
+    }
+
+    inline static unsigned long long getSouthMoveMask( const unsigned long index )
+    {
+        return southMoves[ index ];
+    }
+
     inline static unsigned long long getEastMoveMask( const unsigned long index )
     {
         return eastMoves[ index ];
+    }
+
+    inline static unsigned long long getWestMoveMask( const unsigned long index )
+    {
+        return westMoves[ index ];
     }
 
     inline static unsigned long long getWhiteKingsideCastlingMask()

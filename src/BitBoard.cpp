@@ -4,7 +4,6 @@
 #include <iostream>
 
 unsigned short BitBoard::RANKFILE_MASK = 0b0000000000000111;
-unsigned long long BitBoard::ULL_MASK = 0b0000000000000000000000000000000000000000000000000000000000000001;
 
 unsigned long long BitBoard::northMoves[ 64 ];
 unsigned long long BitBoard::southMoves[ 64 ];
@@ -28,6 +27,12 @@ unsigned long long BitBoard::pawnMovesAttackBlack[ 64 ];
 unsigned long long BitBoard::knightMoves[ 64 ];
 
 unsigned long long BitBoard::kingMoves[ 64 ];
+
+// Indicate the spaces that need to be empty for castling to be allowed
+unsigned long long BitBoard::whiteKingsideCastlingMask  = 0b00000000000000000000000000000000000000000000000000000000001100000;
+unsigned long long BitBoard::whiteQueensideCastlingMask = 0b00000000000000000000000000000000000000000000000000000000000001110;
+unsigned long long BitBoard::blackKingsideCastlingMask  = 0b01100000000000000000000000000000000000000000000000000000000000000;
+unsigned long long BitBoard::blackQueensideCastlingMask = 0b00001110000000000000000000000000000000000000000000000000000000000;
 
 void BitBoard::initialize()
 {
@@ -61,49 +66,49 @@ void BitBoard::initialize()
         if ( rank < 7 && rank > 0 )
         {
             // White pawn
-            pawnMovesNormalWhite[ square ] = ULL_MASK << ( square + 8 );
+            pawnMovesNormalWhite[ square ] = 1ull << ( square + 8 );
 
             // Initial double move
             if ( rank == 1 )
             {
-                pawnMovesExtendedWhite[ square ] = ULL_MASK << ( square + 16 );
+                pawnMovesExtendedWhite[ square ] = 1ull << ( square + 16 );
             }
 
             // Capture
             if ( file == 7 )
             {
-                pawnMovesAttackWhite[ square ] = ULL_MASK << ( square + 7 );
+                pawnMovesAttackWhite[ square ] = 1ull << ( square + 7 );
             }
             else if ( file == 0 )
             {
-                pawnMovesAttackWhite[ square ] = ULL_MASK << ( square + 9 );
+                pawnMovesAttackWhite[ square ] = 1ull << ( square + 9 );
             }
             else
             {
-                pawnMovesAttackWhite[ square ] = (ULL_MASK << ( square + 7 )) | (ULL_MASK << ( square + 9 ));
+                pawnMovesAttackWhite[ square ] = (1ull << ( square + 7 )) | (1ull << ( square + 9 ));
             }
 
             // Black pawn
-            pawnMovesNormalBlack[ square ] = ULL_MASK << ( square - 8 );
+            pawnMovesNormalBlack[ square ] = 1ull << ( square - 8 );
 
             // Initial double move
             if ( rank == 6 )
             {
-                pawnMovesExtendedBlack[ square ] = ULL_MASK << ( square - 16 );
+                pawnMovesExtendedBlack[ square ] = 1ull << ( square - 16 );
             }
 
             // Capture
             if ( file == 7 )
             {
-                pawnMovesAttackBlack[ square ] = ULL_MASK << ( square - 9 );
+                pawnMovesAttackBlack[ square ] = 1ull << ( square - 9 );
             }
             else if ( file == 0 )
             {
-                pawnMovesAttackBlack[ square ] = ULL_MASK << ( square - 7 );
+                pawnMovesAttackBlack[ square ] = 1ull << ( square - 7 );
             }
             else
             {
-                pawnMovesAttackBlack[ square ] = ( ULL_MASK << ( square - 7 ) ) | ( ULL_MASK << ( square - 9 ) );
+                pawnMovesAttackBlack[ square ] = ( 1ull << ( square - 7 ) ) | ( 1ull << ( square - 9 ) );
             }
         }
 
@@ -114,44 +119,44 @@ void BitBoard::initialize()
         {
             if ( file < 6 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square + 10 );
+                knightMoves[ square ] |= 1ull << ( square + 10 );
             }
             if ( file > 1 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square + 6 );
+                knightMoves[ square ] |= 1ull << ( square + 6 );
             }
         }
         if ( rank > 0 )
         {
             if ( file < 6 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square - 6 );
+                knightMoves[ square ] |= 1ull << ( square - 6 );
             }
             if ( file > 1 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square - 10 );
+                knightMoves[ square ] |= 1ull << ( square - 10 );
             }
         }
         if ( rank < 6 )
         {
             if ( file < 7 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square + 17 );
+                knightMoves[ square ] |= 1ull << ( square + 17 );
             }
             if ( file > 0 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square + 15 );
+                knightMoves[ square ] |= 1ull << ( square + 15 );
             }
         }
         if ( rank > 1 )
         {
             if ( file < 7 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square - 15 );
+                knightMoves[ square ] |= 1ull << ( square - 15 );
             }
             if ( file > 0 )
             {
-                knightMoves[ square ] |= ULL_MASK << ( square - 17 );
+                knightMoves[ square ] |= 1ull << ( square - 17 );
             }
         }
 
@@ -163,33 +168,33 @@ void BitBoard::initialize()
         {
             if ( file > 0 )
             {
-                kingMoves[ square ] |= ULL_MASK << ( square - 9 );
+                kingMoves[ square ] |= 1ull << ( square - 9 );
             }
             if ( file < 7 )
             {
-                kingMoves[ square ] |= ULL_MASK << ( square - 7 );
+                kingMoves[ square ] |= 1ull << ( square - 7 );
             }
-            kingMoves[ square ] |= ULL_MASK << ( square - 8 );
+            kingMoves[ square ] |= 1ull << ( square - 8 );
         }
         if ( rank < 7 )
         {
             if ( file > 0 )
             {
-                kingMoves[ square ] |= ULL_MASK << ( square + 7 );
+                kingMoves[ square ] |= 1ull << ( square + 7 );
             }
             if ( file < 7 )
             {
-                kingMoves[ square ] |= ULL_MASK << ( square + 9 );
+                kingMoves[ square ] |= 1ull << ( square + 9 );
             }
-            kingMoves[ square ] |= ULL_MASK << ( square + 8 );
+            kingMoves[ square ] |= 1ull << ( square + 8 );
         }
         if ( file > 0 )
         {
-            kingMoves[ square ] |= ULL_MASK << ( square - 1 );
+            kingMoves[ square ] |= 1ull << ( square - 1 );
         }
         if ( file < 7 )
         {
-            kingMoves[ square ] |= ULL_MASK << ( square + 1 );
+            kingMoves[ square ] |= 1ull << ( square + 1 );
         }
 
         //std::cerr << "Square " << square << " " << (char) ( 'a' + file ) << (char) ( '1' + rank ) << std::endl;

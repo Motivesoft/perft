@@ -4,7 +4,6 @@ class BitBoard
 {
 private:
     static unsigned short RANKFILE_MASK;
-    static unsigned long long ULL_MASK;
 
     // Masks for sliders
     static unsigned long long northMoves[ 64 ];
@@ -30,6 +29,13 @@ private:
     static unsigned long long knightMoves[ 64 ];
 
     static unsigned long long kingMoves[ 64 ];
+
+    // Other masks
+
+    static unsigned long long whiteKingsideCastlingMask;
+    static unsigned long long whiteQueensideCastlingMask;
+    static unsigned long long blackKingsideCastlingMask;
+    static unsigned long long blackQueensideCastlingMask;
 
     static unsigned long long createNorthMask( unsigned short square )
     {
@@ -57,7 +63,7 @@ private:
             {
                 if ( file( next ) > file( square ) )
                 {
-                    mask |= ULL_MASK << next;
+                    mask |= 1ull << next;
                 }
             }
         }
@@ -83,7 +89,7 @@ private:
             {
                 if ( file( next ) < file( square ) )
                 {
-                    mask |= ULL_MASK << next;
+                    mask |= 1ull << next;
                 }
             }
         }
@@ -109,7 +115,7 @@ private:
             {
                 if ( file( next ) < file( square ) )
                 {
-                    mask |= ULL_MASK << next;
+                    mask |= 1ull << next;
                 }
             }
         }
@@ -135,7 +141,7 @@ private:
             {
                 if ( file( next ) > file( square ) )
                 {
-                    mask |= ULL_MASK << next;
+                    mask |= 1ull << next;
                 }
             }
         }
@@ -163,7 +169,7 @@ private:
             // Check for wrap around
             if ( file( next ) < file( square ) )
             {
-                mask |= ULL_MASK << next;
+                mask |= 1ull << next;
             }
         }
 
@@ -182,7 +188,7 @@ private:
             // Check for wrap around
             if ( file( next ) > file( square ) )
             {
-                mask |= ULL_MASK << next;
+                mask |= 1ull << next;
             }
         }
 
@@ -242,6 +248,26 @@ public:
     inline static unsigned long long getKingMoveMask( unsigned long index )
     {
         return kingMoves[ index ];
+    }
+
+    inline static unsigned long long getWhiteKingsideCastlingMask()
+    {
+        return whiteKingsideCastlingMask;
+    }
+
+    inline static unsigned long long getWhiteQueensideCastlingMask()
+    {
+        return whiteQueensideCastlingMask;
+    }
+
+    inline static unsigned long long getBlackKingsideCastlingMask()
+    {
+        return blackKingsideCastlingMask;
+    }
+
+    inline static unsigned long long getBlackQueensideCastlingMask()
+    {
+        return blackQueensideCastlingMask;
     }
 };
 

@@ -15,16 +15,14 @@ const unsigned short Board::KING = 5;
 
 void Board::getMoves( std::vector<Move>& moves )
 {
-    // TODO return the legal moves
-
     const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
-
     const unsigned short promotionBaseline = whiteToMove ? 7 : 0;
+
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
     const unsigned long long& accessibleSquares = emptySquares | attackPieces;
 
-    // Working variable
+    // Working variables
     unsigned long long pieces;
     unsigned long index;
     unsigned long destination;
@@ -34,7 +32,7 @@ void Board::getMoves( std::vector<Move>& moves )
     // - find all free moves (in a direction from a square) 
     //   - and then look at the next square to see whether its an attacker
 
-    // Pawn (including ep capture and flag set, promotion)
+    // Pawn (including ep capture, promotion)
 
     pieces = bitboards[ bitboardPieceIndex + PAWN ];
     while ( _BitScanForward64( &index, pieces ) )
@@ -131,10 +129,31 @@ void Board::getMoves( std::vector<Move>& moves )
         }
     }
 
-    // Bishop
-    // Rook (including castling flag set)
-    // Queen
+    // Bishop + Queen
+
+    // Rook (including castling flag set) + Queen
+
+    pieces = bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = BitBoard::getKingMoveMask( index );
+
+        possibleMoves &= accessibleSquares;
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            moves.push_back( Move( index, destination ) );
+        }
+    }
+
+    // Queen - already covered
+
     // King (including castling, castling flag set)
+
     pieces = bitboards[ bitboardPieceIndex + KING ];
     while ( _BitScanForward64( &index, pieces ) )
     {
@@ -149,6 +168,51 @@ void Board::getMoves( std::vector<Move>& moves )
             possibleMoves ^= 1ull << destination;
 
             moves.push_back( Move( index, destination ) );
+        }
+
+        // Check whether castling is a possibility
+        unsigned long long castlingMask;
+        if ( whiteToMove )
+        {
+            if ( castlingRights[ 0 ] )
+            {
+                castlingMask = BitBoard::getWhiteKingsideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index + 2 ) );
+                }
+            }
+            if ( castlingRights[ 1 ] )
+            {
+                castlingMask = BitBoard::getWhiteQueensideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index - 2 ) );
+                }
+            }
+        }
+        else
+        {
+            if ( castlingRights[ 2 ] )
+            {
+                castlingMask = BitBoard::getBlackKingsideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index + 2 ) );
+                }
+            }
+            if ( castlingRights[ 3 ] )
+            {
+                castlingMask = BitBoard::getBlackQueensideCastlingMask();
+
+                if ( ( emptySquares & castlingMask ) == castlingMask )
+                {
+                    moves.push_back( Move( index, index - 2 ) );
+                }
+            }
         }
     }
 }

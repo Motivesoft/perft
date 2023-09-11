@@ -175,7 +175,7 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
     long lnps = std::lround( nps );
 
     std::cout << "  Found " << nodes << " nodes in " << elapsed << "s (" << lnps << " nps)" << std::endl;
-
+    std::cout << "Invocations: " << Board::invocations << ". Elapsed: " << Board::timespent << "ms" << std::endl;
     return nodes;
 }
 
@@ -190,6 +190,10 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
 
     std::vector<Move> moves;
     board->getMoves( moves );
+
+    // We could get an unfair advantage here by returning count of moves if depth is 1
+    // but we'd need to (a) still think about the divide thing and (b) admit we were no
+    // longer comparing like for like with motive-chess and it would be an meaningless win
 
     for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); it++ )
     {

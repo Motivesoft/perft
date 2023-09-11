@@ -27,7 +27,7 @@ int main( int argc, const char** argv )
     }
 
 #if _DEBUG
-    dumpCommandLine( argc, argv );
+    //dumpCommandLine( argc, argv );
 #endif
 
     bool commandLineOK = false;

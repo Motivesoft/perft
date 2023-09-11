@@ -1,5 +1,6 @@
 #include "Board.h"
 
+
 #include <iostream>
 #include <sstream>
 
@@ -13,7 +14,6 @@ const unsigned short Board::ROOK = 3;
 const unsigned short Board::QUEEN = 4;
 const unsigned short Board::KING = 5;
 
-
 void Board::getMoves( std::vector<Move>& moves )
 {
     const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
@@ -22,9 +22,11 @@ void Board::getMoves( std::vector<Move>& moves )
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
     const unsigned long long& accessibleSquares = emptySquares | attackPieces;
 
-    // Have a movement and capture mask?
-    // - find all free moves (in a direction from a square) 
-    //   - and then look at the next square to see whether its an attacker
+    // normal piece logic for all pieces
+    // ep? done
+    // castling? done
+    // promotion? done
+    // TODO move legality test
 
     // Pawn (including ep capture, promotion)
     getPawnMoves( moves, bitboardPieceIndex + PAWN, accessibleSquares, attackPieces );
@@ -50,14 +52,104 @@ Board::State Board::makeMove( const Move& move )
     Board::State state( *this );
 
     // TODO the actual make move stuff here
-    //   piece move (including special moves - capture, ep, castling, promotion)
+    //   basic piece move 
+    //      capture
+    //      ep
+    //      castling 
+    //      promotion
     //   whiteToMove
     //   castling
     //   ep index
     //   halfMove
     //   fullMove
 
+    const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
+    const unsigned short opponentBitboardPieceIndex = whiteToMove ? 6 : 0;
+
+    const unsigned short from = move.getFrom();
+    const unsigned short to = move.getTo();
+    const unsigned long promotion = move.getPromotion();
+
+    const unsigned long long fromBit = 1ull << move.getFrom();
+    const unsigned long long toBit = 1ull << move.getTo();
+
+    unsigned short pieceIndex = boardLUT[ from ];
+    unsigned short destination = boardLUT[ to ];
+
+    //std::cerr << "Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( pieceIndex ) << std::endl;
+
+    // Find which piece is moving and move it, with any required side-effects
+    //  - promotion
+    //  - capture
+    //  - capture through promotion
+    //  - ep capture
+    //  - ep flag update
+    //  - castling
+    //  - castling flag update
+
+    // With a regular move, it is just a case of moving from->to in a single bitboard and then refreshing the other masks
+    (bitboards[ pieceIndex ] ^= fromBit) |= toBit;
+
+    if ( promotion )
+    {
+
+    }
+
+    if ( destination == USHRT_MAX )
+    {
+
+    }
+
+    //for ( pieceIndex = 0; pieceIndex < 6; pieceIndex++ )
+    //{
+    //    if ( bitboards[ bitboardPieceIndex + pieceIndex ] & fromBit )
+    //    {
+    //        std::cerr << "  Piece: " << pieceFromBitboardArrayIndex( bitboardPieceIndex + pieceIndex ) << std::endl;
+
+    //        // Remove the piece from
+    //        std::cerr << "Removing from " << from;
+    //        bitboards[ bitboardPieceIndex + pieceIndex ] ^= fromBit;
+
+    //        if ( promotion )
+    //        {
+    //            std::cerr << " promoting at " << to << std::endl;
+    //            bitboards[ bitboardPieceIndex + bitboardArrayIndexFromPromotion( promotion ) ] |= toBit;
+    //        }
+    //        else
+    //        {
+    //            std::cerr << " placing at " << to << std::endl;
+    //            BitBoard::dumpBitBoard( bitboards[ bitboardPieceIndex + pieceIndex ], " Before" );
+    //            bitboards[ bitboardPieceIndex + pieceIndex ] |= toBit;
+    //            BitBoard::dumpBitBoard( bitboards[ bitboardPieceIndex + pieceIndex ], " After" );
+    //        }
+
+    //        break;
+    //    }
+    //}
+
+    //// Deal with a capture - ep or otherwise
+    //if ( toBit == enPassantIndex && pieceIndex == PAWN )
+    //{
+    //    std::cerr << "EP capture" << std::endl;
+
+    //    // Clear enemy pawn from where it actually is
+    //    bitboards[ opponentBitboardPieceIndex + PAWN ] ^= (whiteToMove ? toBit << 8 : toBit >> 8);
+    //    BitBoard::dumpBitBoard( bitboards[ bitboardPieceIndex + pieceIndex ], " Mine" );
+    //    BitBoard::dumpBitBoard( bitboards[ opponentBitboardPieceIndex + PAWN ], " Theirs" );
+    //}
+    //else
+    //{
+    //    unsigned short capturedPiece = bitboardArrayIndexFromBit( toBit );
+    //    if ( capturedPiece |= USHRT_MAX )
+    //    {
+    //        bitboards[ capturedPiece ] ^= toBit;
+    //    }
+
+    //}
+
     whiteToMove = !whiteToMove;
+
+    resetMasks();
 
     return state;
 }
@@ -65,6 +157,8 @@ Board::State Board::makeMove( const Move& move )
 void Board::unmakeMove( const Board::State& state )
 {
     state.apply( *this );
+
+    resetMasks();
 }
 
 Board* Board::createBoard( const std::string& fen )
@@ -317,9 +411,9 @@ bool Board::isEmpty( unsigned long long bit ) const
     return emptySquares & bit;
 }
 
-size_t Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
+unsigned short Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
 {
-    for ( size_t loop = 0; loop < 12; loop++ )
+    for ( unsigned short loop = 0; loop < 12; loop++ )
     {
         if ( bitboards[ loop ] & bit )
         {
@@ -327,15 +421,15 @@ size_t Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
         }
     }
 
-    return -1;
+    return USHRT_MAX;
 }
 
-const char Board::pieceFromBitboardArrayIndex( size_t arrayIndex )
+const char Board::pieceFromBitboardArrayIndex( unsigned short arrayIndex )
 {
     return "PNBRQKpnbrqk"[ arrayIndex ];
 }
 
-size_t Board::bitboardArrayIndexFromPiece( const char piece )
+unsigned short Board::bitboardArrayIndexFromPiece( const char piece )
 {
     switch ( piece )
     {
@@ -675,14 +769,22 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
     }
 }
 
+unsigned int Board::timespent;
+unsigned int Board::invocations;
+
 void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask )
 {
+    clock_t start = clock(); invocations++;
     unsigned long otherIndex;
 
+    // Get the direction mask (e.g. NorthEast)
     unsigned long long possibleMoves = directionMask( index );
+    
+    // Work out the pieces along the way
     unsigned long long attackersOfInterest = attackPieces & possibleMoves;
     unsigned long long blockersOfInterest = blockingPieces & possibleMoves;
 
+    // For each attacker, clip the path to exclude any steps beyond the attacker
     while ( _BitScanForward64( &otherIndex, attackersOfInterest ) )
     {
         attackersOfInterest ^= 1ull << otherIndex;
@@ -690,6 +792,7 @@ void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& 
         possibleMoves &= ~directionMask( otherIndex );
     }
 
+    // For each blocker (own piece), clip the path to exclude any steps beyond the blocker (and including the blocker)
     while ( _BitScanForward64( &otherIndex, blockersOfInterest ) )
     {
         blockersOfInterest ^= 1ull << otherIndex;
@@ -698,10 +801,12 @@ void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& 
         possibleMoves &= ~( directionMask( otherIndex ) | blockingPieces );
     }
 
+    // Then create a move for each step along the mask that remains
     while ( _BitScanForward64( &otherIndex, possibleMoves ) )
     {
         possibleMoves ^= 1ull << otherIndex;
 
         moves.push_back( Move( index, otherIndex ) );
     }
+    clock_t end = clock(); timespent += ( end - start );
 }

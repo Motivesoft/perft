@@ -12,9 +12,7 @@ const unsigned long Move::QUEEN          = 0b00000000000000000111000000000000;
 Move::Move( unsigned long from, unsigned long to, unsigned long promotion ) :
     moveBits( ( from << 6 ) | to | promotion )
 {
-#if _DEBUG
-    std::cerr << "From: " << std::hex << from << ". To: " << std::hex << to << ". Move: " << toString() << std::endl;
-#endif
+//    std::cerr << "From: " << std::hex << from << ". To: " << std::hex << to << ". Move: " << toString() << std::endl;
 }
 
 std::string Move::toString() const

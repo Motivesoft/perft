@@ -121,9 +121,19 @@ private:
     void getKingMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares );
 
     typedef unsigned long long ( *DirectionMask )( const unsigned long );
+    typedef unsigned char ( *BitScanner )( unsigned long*, unsigned long long );
 
-    void getNortherlyDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask );
-    void getSoutherlyDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask );
+    inline static unsigned char scanForward( unsigned long* index, unsigned long long mask )
+    {
+        return _BitScanForward64( index, mask );
+    }
+
+    inline static unsigned char scanReverse( unsigned long* index, unsigned long long mask )
+    {
+        return _BitScanReverse64( index, mask );
+    }
+
+    void getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask, BitScanner bitScanner );
 
 public:
     static Board* createBoard( const std::string& fen );
@@ -158,8 +168,5 @@ public:
     // State* makeMove( const Move& move )
     // undoMove( state )
     // Where state is undo/redo set of settings - identical to Board, to the point where Board might just use it natively?
-
-    static unsigned int timespent;
-    static unsigned int invocations;
 };
 

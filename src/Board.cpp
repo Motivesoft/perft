@@ -654,11 +654,11 @@ void Board::getBishopMoves( std::vector<Move>& moves, const unsigned short& piec
     {
         pieces ^= 1ull << index;
 
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask );
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask, &scanForward );
 
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask );
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask, &scanReverse );
     }
 }
 
@@ -672,11 +672,11 @@ void Board::getRookMoves( std::vector<Move>& moves, const unsigned short& pieceI
     {
         pieces ^= 1ull << index;
 
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask );
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getWestMoveMask, &scanForward );
 
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask );
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask, &scanReverse );
     }
 }
 
@@ -690,15 +690,15 @@ void Board::getQueenMoves( std::vector<Move>& moves, const unsigned short& piece
     {
         pieces ^= 1ull << index;
 
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask );
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getWestMoveMask );
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask );
-        getNortherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getWestMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask, &scanForward );
 
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask );
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask );
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask );
-        getSoutherlyDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask, &scanReverse );
     }
 }
 
@@ -772,47 +772,10 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
     }
 }
 
-unsigned int Board::timespent;
-unsigned int Board::invocations;
-
-void Board::getNortherlyDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask )
+// Pass a scanner in here so that we can look either forward or reverse to make sure we check the closest attacker/blocker and
+// don't waste time checking those further away
+void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask, BitScanner bitScanner )
 {
-    clock_t start = clock(); invocations++;
-    unsigned long otherIndex;
-
-    // Get the direction mask (e.g. NorthEast)
-    unsigned long long possibleMoves = directionMask( index );
-    
-    // Work out the pieces along the way
-    unsigned long long attackersOfInterest = attackPieces & possibleMoves;
-    unsigned long long blockersOfInterest = blockingPieces & possibleMoves;
-
-    // For each attacker, clip the path to exclude any steps beyond the attacker
-    if ( _BitScanForward64( &otherIndex, attackersOfInterest ) )
-    {
-        possibleMoves &= ~directionMask( otherIndex );
-    }
-
-    // For each blocker (own piece), clip the path to exclude any steps beyond the blocker (and including the blocker)
-    if ( _BitScanForward64( &otherIndex, blockersOfInterest ) )
-    {
-        // Add the blocker pieces back in, before we 'not' it, to take out the blocking piece itself
-        possibleMoves &= ~( directionMask( otherIndex ) | blockingPieces );
-    }
-
-    // Then create a move for each step along the mask that remains
-    while ( _BitScanForward64( &otherIndex, possibleMoves ) )
-    {
-        possibleMoves ^= 1ull << otherIndex;
-
-        moves.push_back( Move( index, otherIndex ) );
-    }
-    clock_t end = clock(); timespent += ( end - start );
-}
-
-void Board::getSoutherlyDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask )
-{
-    clock_t start = clock(); invocations++;
     unsigned long otherIndex;
 
     // Get the direction mask (e.g. NorthEast)
@@ -823,24 +786,23 @@ void Board::getSoutherlyDirectionalMoves( std::vector<Move>& moves, const unsign
     unsigned long long blockersOfInterest = blockingPieces & possibleMoves;
 
     // For each attacker, clip the path to exclude any steps beyond the attacker
-    if ( _BitScanReverse64( &otherIndex, attackersOfInterest ) )
+    if ( bitScanner( &otherIndex, attackersOfInterest ) )
     {
         possibleMoves &= ~directionMask( otherIndex );
     }
 
     // For each blocker (own piece), clip the path to exclude any steps beyond the blocker (and including the blocker)
-    if ( _BitScanReverse64( &otherIndex, blockersOfInterest ) )
+    if ( bitScanner( &otherIndex, blockersOfInterest ) )
     {
         // Add the blocker pieces back in, before we 'not' it, to take out the blocking piece itself
         possibleMoves &= ~( directionMask( otherIndex ) | blockingPieces );
     }
 
     // Then create a move for each step along the mask that remains
-    while ( _BitScanReverse64( &otherIndex, possibleMoves ) )
+    while ( bitScanner( &otherIndex, possibleMoves ) )
     {
         possibleMoves ^= 1ull << otherIndex;
 
         moves.push_back( Move( index, otherIndex ) );
     }
-    clock_t end = clock(); timespent += ( end - start );
 }

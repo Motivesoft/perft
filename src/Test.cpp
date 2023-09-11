@@ -175,7 +175,7 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
     long lnps = std::lround( nps );
 
     std::cout << "  Found " << nodes << " nodes in " << elapsed << "s (" << lnps << " nps)" << std::endl;
-    std::cout << "Invocations: " << Board::invocations << ". Elapsed: " << Board::timespent << "ms" << std::endl;
+
     return nodes;
 }
 
@@ -189,6 +189,8 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
     }
 
     std::vector<Move> moves;
+    moves.reserve( 256 );
+
     board->getMoves( moves );
 
     // We could get an unfair advantage here by returning count of moves if depth is 1

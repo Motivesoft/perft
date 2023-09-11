@@ -33,13 +33,13 @@ void Board::getMoves( std::vector<Move>& moves )
     getKnightMoves( moves, bitboardPieceIndex + KNIGHT, accessibleSquares );
 
     // Bishop + Queen
-    getBishopMoves( moves, bitboardPieceIndex + BISHOP, accessibleSquares );
+    getBishopMoves( moves, bitboardPieceIndex + BISHOP, accessibleSquares, attackPieces, blockingPieces );
 
     // Rook (including castling flag set) + Queen
     getRookMoves( moves, bitboardPieceIndex + ROOK, accessibleSquares, attackPieces, blockingPieces );
 
     // Queen
-    getQueenMoves( moves, bitboardPieceIndex + QUEEN, accessibleSquares );
+    getQueenMoves( moves, bitboardPieceIndex + QUEEN, accessibleSquares, attackPieces, blockingPieces );
 
     // King (including castling, castling flag set)
     getKingMoves( moves, bitboardPieceIndex + KING, accessibleSquares );
@@ -546,17 +546,20 @@ void Board::getKnightMoves( std::vector<Move>& moves, const unsigned short& piec
     }
 }
 
-void Board::getBishopMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares )
+void Board::getBishopMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces )
 {
     unsigned long long pieces;
     unsigned long index;
-    unsigned long destination;
 
     pieces = bitboards[ pieceIndex ];
     while ( _BitScanForward64( &index, pieces ) )
     {
         pieces ^= 1ull << index;
 
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask );
     }
 }
 
@@ -570,26 +573,6 @@ void Board::getRookMoves( std::vector<Move>& moves, const unsigned short& pieceI
     {
         pieces ^= 1ull << index;
 
-        // Scenario. 
-        //   W to play
-        //   Rank is:
-        //                moveMask attackerMask accessible blocker  empty     desired   moveMask(attacker)                      moveMask(blocker)
-        //   1  ..n.n..R   11111110 00101000     11111110   00000001 11010110  00001110  11000000 111100000
-        //   2  ....n..R   11111110 00001000     11111110   00000001 11110110  00001110
-        //   3  ....N..R   11111110 00000000     11110110   00001001 11110110  00000110
-        //   4  ...Nn..R   11111110 00001000     11101110   00010001 11100110  00001110
-        //   5  ...nN..R   11111110 00010000     11110110   00001001 11100110  00000110
-        //
-        //   moveMask & attackerMask gives attackers of interest - ie trims attackerMask from being on the whole board
-        //   for each attacker of interest, and possible moves with !moveMask(attacker), giving:
-        //   1) (11111110 & 00101000) = 00101000
-        //       attackerMoves 11000000 11110000
-        //      !attackerMoves 00111111 00001111
-        //       11111110 & 00111111 & 00001111 = 00001110
-        // 
-        //   moveMask & blockerMask gives blockers of interest - ie trims blockerMask from being on the whole board
-        //   for each blocker of interest, and possible moves with !moveMask(blocker | blockerMask), giving:
-
         getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask );
         getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask );
         getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask );
@@ -597,48 +580,24 @@ void Board::getRookMoves( std::vector<Move>& moves, const unsigned short& pieceI
     }
 }
 
-void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask )
-{
-    unsigned long otherIndex;
-
-    unsigned long long possibleMoves = directionMask( index );
-    unsigned long long attackersOfInterest = attackPieces & possibleMoves;
-    unsigned long long blockersOfInterest = blockingPieces & possibleMoves;
-
-    while ( _BitScanForward64( &otherIndex, attackersOfInterest ) )
-    {
-        attackersOfInterest ^= 1ull << otherIndex;
-
-        possibleMoves &= ~directionMask( otherIndex );
-    }
-
-    while ( _BitScanForward64( &otherIndex, blockersOfInterest ) )
-    {
-        blockersOfInterest ^= 1ull << otherIndex;
-
-        // Add the blocker pieces back in, before we 'not' it, to take out the blocking piece itself
-        possibleMoves &= ~( directionMask( otherIndex ) | blockingPieces );
-    }
-
-    while ( _BitScanForward64( &otherIndex, possibleMoves ) )
-    {
-        possibleMoves ^= 1ull << otherIndex;
-
-        moves.push_back( Move( index, otherIndex ) );
-    }
-}
-
-void Board::getQueenMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares )
+void Board::getQueenMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces )
 {
     unsigned long long pieces;
     unsigned long index;
-    unsigned long destination;
 
     pieces = bitboards[ pieceIndex ];
     while ( _BitScanForward64( &index, pieces ) )
     {
         pieces ^= 1ull << index;
 
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask );
     }
 }
 
@@ -709,5 +668,36 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
                 }
             }
         }
+    }
+}
+
+void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask )
+{
+    unsigned long otherIndex;
+
+    unsigned long long possibleMoves = directionMask( index );
+    unsigned long long attackersOfInterest = attackPieces & possibleMoves;
+    unsigned long long blockersOfInterest = blockingPieces & possibleMoves;
+
+    while ( _BitScanForward64( &otherIndex, attackersOfInterest ) )
+    {
+        attackersOfInterest ^= 1ull << otherIndex;
+
+        possibleMoves &= ~directionMask( otherIndex );
+    }
+
+    while ( _BitScanForward64( &otherIndex, blockersOfInterest ) )
+    {
+        blockersOfInterest ^= 1ull << otherIndex;
+
+        // Add the blocker pieces back in, before we 'not' it, to take out the blocking piece itself
+        possibleMoves &= ~( directionMask( otherIndex ) | blockingPieces );
+    }
+
+    while ( _BitScanForward64( &otherIndex, possibleMoves ) )
+    {
+        possibleMoves ^= 1ull << otherIndex;
+
+        moves.push_back( Move( index, otherIndex ) );
     }
 }

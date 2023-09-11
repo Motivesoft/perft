@@ -19,6 +19,7 @@ void Board::getMoves( std::vector<Move>& moves )
 
     const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
 
+    const unsigned short promotionBaseline = whiteToMove ? 7 : 0;
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
     const unsigned long long& accessibleSquares = emptySquares | attackPieces;
@@ -68,6 +69,36 @@ void Board::getMoves( std::vector<Move>& moves )
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
             possibleMoves ^= 1ull << destination;
+
+            if ( ((index >> 3) & 0b00000111) == promotionBaseline )
+            {
+                moves.push_back( Move( index, destination ) );
+                moves.push_back( Move( index, destination ) );
+                moves.push_back( Move( index, destination ) );
+                moves.push_back( Move( index, destination ) );
+            }
+            else
+            {
+                moves.push_back( Move( index, destination ) );
+            }
+        }
+    }
+
+    pieces = bitboards[ bitboardPieceIndex + PAWN ];
+    while ( _BitScanForward64( &index, pieces ) )
+    {
+        pieces ^= 1ull << index;
+
+        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
+
+        possibleMoves &= (attackPieces | enPassantIndex);
+
+        while ( _BitScanForward64( &destination, possibleMoves ) )
+        {
+            possibleMoves ^= 1ull << destination;
+
+            // Remember those that could move at this point as they may also be able to make the extended move
+            baselinePawns |= 1ull << index;
 
             moves.push_back( Move( index, destination ) );
         }

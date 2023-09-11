@@ -224,6 +224,16 @@ public:
         return pawnMovesExtendedBlack[ index ];
     }
 
+    inline static unsigned long long getWhitePawnAttackMoveMask( unsigned long index )
+    {
+        return pawnMovesAttackWhite[ index ];
+    }
+
+    inline static unsigned long long getBlackPawnAttackMoveMask( unsigned long index )
+    {
+        return pawnMovesAttackBlack[ index ];
+    }
+
     inline static unsigned long long getKnightMoveMask( unsigned long index )
     {
         return knightMoves[ index ];

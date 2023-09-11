@@ -431,21 +431,25 @@ void Board::State::apply( Board& board ) const
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )
 {
-    const unsigned short promotionRank = whiteToMove ? 7 : 0;
-    const unsigned short homeRank = whiteToMove ? 1 : 6;
+    const unsigned short promotionRankFrom = whiteToMove ? 6 : 1;
+    const unsigned short homeRankFrom = whiteToMove ? 1 : 6;
 
     unsigned long long pieces;
     unsigned long index;
     unsigned long destination;
     unsigned long long baselinePawns = 0;
 
+    unsigned short rankFrom;
+    unsigned long long possibleMoves;
+
     pieces = bitboards[ pieceIndex ];
     while ( _BitScanForward64( &index, pieces ) )
     {
         pieces ^= 1ull << index;
 
-        unsigned short rank = ( index >> 3 ) & 0b00000111;
-        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
+        rankFrom = ( index >> 3 ) & 0b00000111;
+
+        possibleMoves = whiteToMove ? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
 
         possibleMoves &= emptySquares;
 
@@ -454,12 +458,12 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
             possibleMoves ^= 1ull << destination;
 
             // Check whether any are elegible to make the extended move (e.g. e2e4) or promote
-            if ( rank == homeRank )
+            if ( rankFrom == homeRankFrom )
             {
                 baselinePawns |= 1ull << index;
                 moves.push_back( Move( index, destination ) );
             }
-            else if ( rank == promotionRank )
+            else if ( rankFrom == promotionRankFrom )
             {
                 moves.push_back( Move( index, destination, Move::KNIGHT ) );
                 moves.push_back( Move( index, destination, Move::BISHOP ) );
@@ -479,8 +483,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
     {
         pieces ^= 1ull << index;
 
-        unsigned short rank = ( index >> 3 ) & 0b00000111;
-        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
+        possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
 
         possibleMoves &= emptySquares;
 
@@ -488,6 +491,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
         {
             possibleMoves ^= 1ull << destination;
 
+            // No need to check promotion here as this is only for pawns on their home rank
             moves.push_back( Move( index, destination ) );
         }
     }
@@ -498,8 +502,8 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
     {
         pieces ^= 1ull << index;
 
-        unsigned short rank = ( index >> 3 ) & 0b00000111;
-        unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
+        rankFrom = ( index >> 3 ) & 0b00000111;
+        possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
 
         possibleMoves &= ( attackPieces | enPassantIndex );
 
@@ -507,7 +511,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
         {
             possibleMoves ^= 1ull << destination;
 
-            if ( rank == promotionRank )
+            if ( rankFrom == promotionRankFrom )
             {
                 moves.push_back( Move( index, destination, Move::KNIGHT ) );
                 moves.push_back( Move( index, destination, Move::BISHOP ) );

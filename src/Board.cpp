@@ -62,6 +62,7 @@ void Board::getMoves( std::vector<Move>& moves )
     {
         pieces ^= 1ull << index;
 
+        unsigned short rank = ( index >> 3 ) & 0b00000111;
         unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
 
         possibleMoves &= emptySquares;
@@ -70,12 +71,12 @@ void Board::getMoves( std::vector<Move>& moves )
         {
             possibleMoves ^= 1ull << destination;
 
-            if ( ((index >> 3) & 0b00000111) == promotionBaseline )
+            if ( rank == promotionBaseline )
             {
-                moves.push_back( Move( index, destination ) );
-                moves.push_back( Move( index, destination ) );
-                moves.push_back( Move( index, destination ) );
-                moves.push_back( Move( index, destination ) );
+                moves.push_back( Move( index, destination, Move::KNIGHT ) );
+                moves.push_back( Move( index, destination, Move::BISHOP ) );
+                moves.push_back( Move( index, destination, Move::ROOK ) );
+                moves.push_back( Move( index, destination, Move::QUEEN ) );
             }
             else
             {
@@ -89,6 +90,7 @@ void Board::getMoves( std::vector<Move>& moves )
     {
         pieces ^= 1ull << index;
 
+        unsigned short rank = ( index >> 3 ) & 0b00000111;
         unsigned long long possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
 
         possibleMoves &= (attackPieces | enPassantIndex);
@@ -97,10 +99,17 @@ void Board::getMoves( std::vector<Move>& moves )
         {
             possibleMoves ^= 1ull << destination;
 
-            // Remember those that could move at this point as they may also be able to make the extended move
-            baselinePawns |= 1ull << index;
-
-            moves.push_back( Move( index, destination ) );
+            if ( rank == promotionBaseline )
+            {
+                moves.push_back( Move( index, destination, Move::KNIGHT ) );
+                moves.push_back( Move( index, destination, Move::BISHOP ) );
+                moves.push_back( Move( index, destination, Move::ROOK ) );
+                moves.push_back( Move( index, destination, Move::QUEEN ) );
+            }
+            else
+            {
+                moves.push_back( Move( index, destination ) );
+            }
         }
     }
 

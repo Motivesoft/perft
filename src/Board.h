@@ -9,6 +9,10 @@
 class Board
 {
 private:
+    static const unsigned short EMPTY;
+    static const unsigned short WHITE;
+    static const unsigned short BLACK;
+
     static const unsigned short PAWN;
     static const unsigned short KNIGHT;
     static const unsigned short BISHOP;
@@ -19,11 +23,12 @@ private:
     // Holds references to bitboards - e.g. 0 (a1) will point to the white rook bitboard with the start position
     std::array<unsigned short, 64> boardLUT;
 
-    std::array<unsigned long long, 12> bitboards;
+    // Lucky 13 - empty, 6 white pieces, 6 black pieces
+    std::array<unsigned long long, 13> bitboards;
+
     unsigned long long whitePieces;
     unsigned long long blackPieces;
     unsigned long long allPieces;
-    unsigned long long emptySquares;
 
     bool whiteToMove;
 
@@ -34,7 +39,7 @@ private:
     unsigned short halfMoveClock;
     unsigned short fullMoveNumber;
 
-    Board( std::array<unsigned long long, 12> bitboards,
+    Board( std::array<unsigned long long, 13> bitboards,
            bool whiteToMove,
            std::array<bool, 4> castlingRights,
            unsigned long long enPassantIndex,
@@ -47,7 +52,7 @@ private:
         halfMoveClock( halfMoveClock ),
         fullMoveNumber( fullMoveNumber )
     {
-        allPieces = whitePieces = blackPieces = emptySquares = 0;
+        whitePieces = blackPieces = 0;
 
         // Build a lookup table that goes from board index (0-63) to bitboardArrayIndex (0-11 or USHRT_MAX)
         for ( unsigned short loop = 0; loop < 64; loop++ )
@@ -55,9 +60,9 @@ private:
             boardLUT[ loop ] = 0;
         }
 
-        for ( size_t loop = 0; loop < 12; loop++ )
+        for ( size_t loop = WHITE; loop < bitboards.size(); loop++ )
         {
-            if ( loop < 6 )
+            if ( loop < BLACK )
             {
                 whitePieces |= bitboards[ loop ];
             }
@@ -76,11 +81,15 @@ private:
         }
 
         allPieces = whitePieces | blackPieces;
-        emptySquares = ~allPieces;
     }
 
     // Instance methods
     inline bool isEmpty( unsigned long long bit ) const;
+
+    inline unsigned long long emptySquares() const
+    {
+        return bitboards[ EMPTY ];
+    }
 
     /// <summary>
     /// Find which bitboard array has bit set and return its index
@@ -150,7 +159,7 @@ public:
     class State
     {
     private:
-        std::array<unsigned long long, 12> bitboards;
+        std::array<unsigned long long, 13> bitboards;
         bool whiteToMove;
         std::array<bool, 4> castlingRights;
         unsigned long long enPassantIndex;
@@ -162,7 +171,6 @@ public:
         unsigned long long whitePieces;
         unsigned long long blackPieces;
         unsigned long long allPieces;
-        unsigned long long emptySquares;
 
     public:
         State( const Board& board );

@@ -7,6 +7,11 @@
 #include "BitBoard.h"
 
 // Indices into bitboards
+const unsigned short Board::EMPTY = 0;
+const unsigned short Board::WHITE = 1;
+const unsigned short Board::BLACK = 7;
+
+// Needs to be combined with an offset - WHITE or BLACK
 const unsigned short Board::PAWN = 0;
 const unsigned short Board::KNIGHT = 1;
 const unsigned short Board::BISHOP = 2;
@@ -16,11 +21,11 @@ const unsigned short Board::KING = 5;
 
 void Board::getMoves( std::vector<Move>& moves )
 {
-    const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
+    const unsigned short bitboardPieceIndex = whiteToMove ? WHITE : BLACK;
 
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
-    const unsigned long long& accessibleSquares = emptySquares | attackPieces;
+    const unsigned long long& accessibleSquares = emptySquares() | attackPieces;
 
     // normal piece logic for all pieces
     // ep? done
@@ -205,8 +210,8 @@ Board* Board::createBoard( const std::string& fen )
         }
     }
 
-    // Two sets of bitboards, white and black
-    std::array<unsigned long long, 12> bitboards = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+    // Empty squares and then two sets of bitboards for six pieces each - white and black
+    std::array<unsigned long long, 13> bitboards = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 
     // Unpack FEN board representation
     unsigned long long mask = 1ull << 56;
@@ -227,7 +232,11 @@ Board* Board::createBoard( const std::string& fen )
                 char distance[ 2 ];
                 distance[ 0 ] = *it;
                 distance[ 1 ] = '\0';
-                mask <<= atoi( distance );
+                for ( int index = 0; index < atoi( distance ); index++ )
+                {
+                    bitboards[ 0 ] |= mask;
+                    mask <<= 1;
+                }
             }
             else
             {
@@ -253,7 +262,11 @@ Board* Board::createBoard( const std::string& fen )
             char distance[ 2 ];
             distance[ 0 ] = *it;
             distance[ 1 ] = '\0';
-            mask <<= atoi( distance );
+            for ( int index = 0; index < atoi( distance ); index++ )
+            {
+                bitboards[ 0 ] |= mask;
+                mask <<= 1;
+            }
         }
         else
         {
@@ -403,12 +416,13 @@ std::string Board::toString() const
 
 bool Board::isEmpty( unsigned long long bit ) const
 {
-    return emptySquares & bit;
+    return emptySquares() & bit;
 }
 
 unsigned short Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
 {
-    for ( unsigned short loop = 0; loop < 12; loop++ )
+    // This includes empty squares
+    for ( unsigned short loop = 0; loop < bitboards.size(); loop++ )
     {
         if ( bitboards[ loop ] & bit )
         {
@@ -416,56 +430,59 @@ unsigned short Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
         }
     }
 
+    // Shouldn't get here
+    std::cerr << "Unexpected failure" << std::endl;
     return USHRT_MAX;
 }
 
 const char Board::pieceFromBitboardArrayIndex( unsigned short arrayIndex )
 {
-    return "PNBRQKpnbrqk"[ arrayIndex ];
+    return "-PNBRQKpnbrqk"[ arrayIndex ];
 }
 
 unsigned short Board::bitboardArrayIndexFromPiece( const char piece )
 {
     switch ( piece )
     {
+        default:
+        case '-':
+            return EMPTY;
+
         case 'P':
-            return 0;
+            return WHITE + PAWN;
 
         case 'N':
-            return 1;
+            return WHITE + KNIGHT;
 
         case 'B':
-            return 2;
+            return WHITE + BISHOP;
 
         case 'R':
-            return 3;
+            return WHITE + ROOK;
 
         case 'Q':
-            return 4;
+            return WHITE + QUEEN;
 
         case 'K':
-            return 5;
+            return WHITE + KING;
 
         case 'p':
-            return 6;
+            return BLACK + PAWN;
 
         case 'n':
-            return 7;
+            return BLACK + KNIGHT;
 
         case 'b':
-            return 8;
+            return BLACK + BISHOP;
 
         case 'r':
-            return 9;
+            return BLACK + ROOK;
 
         case 'q':
-            return 10;
+            return BLACK + QUEEN;
 
         case 'k':
-            return 11;
-
-        default:
-            return -1;
+            return BLACK + KING;
     }
 }
 
@@ -479,8 +496,7 @@ Board::State::State( const Board& board ) :
     boardLUT( board.boardLUT ),
     whitePieces( board.whitePieces ),
     blackPieces( board.blackPieces ),
-    allPieces( board.allPieces ),
-    emptySquares( board.emptySquares )
+    allPieces( board.allPieces )
 {
 }
 
@@ -496,7 +512,6 @@ void Board::State::apply( Board& board ) const
     board.whitePieces = whitePieces;
     board.blackPieces = blackPieces;
     board.allPieces = allPieces;
-    board.emptySquares = emptySquares;
 }
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )
@@ -521,7 +536,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
         possibleMoves = whiteToMove ? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
 
-        possibleMoves &= emptySquares;
+        possibleMoves &= emptySquares();
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
@@ -555,7 +570,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
         possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
 
-        possibleMoves &= emptySquares;
+        possibleMoves &= emptySquares();
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
@@ -702,6 +717,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
         }
 
         // Check whether castling is a possibility
+        const unsigned long long allEmptySquares = emptySquares();
         unsigned long long castlingMask;
         if ( whiteToMove )
         {
@@ -709,7 +725,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getWhiteKingsideCastlingMask();
 
-                if ( ( emptySquares & castlingMask ) == castlingMask )
+                if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
                     moves.push_back( Move( index, index + 2 ) );
                 }
@@ -718,7 +734,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getWhiteQueensideCastlingMask();
 
-                if ( ( emptySquares & castlingMask ) == castlingMask )
+                if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
                     moves.push_back( Move( index, index - 2 ) );
                 }
@@ -730,7 +746,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getBlackKingsideCastlingMask();
 
-                if ( ( emptySquares & castlingMask ) == castlingMask )
+                if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
                     moves.push_back( Move( index, index + 2 ) );
                 }
@@ -739,7 +755,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getBlackQueensideCastlingMask();
 
-                if ( ( emptySquares & castlingMask ) == castlingMask )
+                if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
                     moves.push_back( Move( index, index - 2 ) );
                 }

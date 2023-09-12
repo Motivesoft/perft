@@ -200,8 +200,24 @@ Board::State Board::makeMove( const Move& move )
 
     whiteToMove = !whiteToMove;
 
+    if ( whiteToMove )
+    {
+        fullMoveNumber++;
+    }
+
+    if ( fromPiece == bitboardPieceIndex + PAWN || toPiece != EMPTY )
+    {
+        halfMoveClock = 0;
+    }
+    else
+    {
+        halfMoveClock++;
+    }
+
     // RESET WHITE/BLACK MASKS
+    // SET FULL and HALF
     
+     
     //resetMasks();
 
     unsigned long long test = 0;

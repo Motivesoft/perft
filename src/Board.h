@@ -162,7 +162,7 @@ private:
     /// </summary>
     /// <param name="mask">bit or bits to test</param>
     /// <returns>true if the opponent is currently attacking any of these squares</returns>
-    bool isAttacked( unsigned long long mask );
+    bool isAttacked( unsigned long long mask, bool asWhite );
 
     typedef unsigned long long ( *DirectionMask )( const unsigned long );
     typedef unsigned char ( *BitScanner )( unsigned long*, unsigned long long );

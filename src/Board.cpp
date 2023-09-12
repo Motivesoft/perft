@@ -55,19 +55,17 @@ void Board::getMoves( std::vector<Move>& moves )
     Board::State state( *this );
     for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); )
     {
-        //std::cerr << "Trying " << ( *it ).toString() << std::endl;
         applyMove( *it );
-        whiteToMove = !whiteToMove;
-        if ( isAttacked( bitboards[ bitboardPieceIndex + KING ] ) )
+
+        if ( isAttacked( bitboards[ bitboardPieceIndex + KING ], !whiteToMove ) )
         {
-            //std::cerr << "Erasing " << ( *it ).toString() << std::endl;
             it = moves.erase( it );
         }
         else
         {
             it++;
         }
-        whiteToMove = !whiteToMove;
+
         unmakeMove( state );
     }
 }
@@ -797,7 +795,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
                     // Test for the king travelling through check
-                    if ( !isAttacked( 0b01110000 ) )
+                    if ( !isAttacked( 0b01110000, whiteToMove ) )
                     {
                         moves.push_back( Move( index, index + 2 ) );
                     }
@@ -809,7 +807,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
-                    if ( !isAttacked( 0b00011100 ) )
+                    if ( !isAttacked( 0b00011100, whiteToMove ) )
                     {
                         moves.push_back( Move( index, index - 2 ) );
                     }
@@ -824,7 +822,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
-                    if ( !isAttacked( 0b0111000000000000000000000000000000000000000000000000000000000000 ) )
+                    if ( !isAttacked( 0b0111000000000000000000000000000000000000000000000000000000000000, whiteToMove ) )
                     {
                         moves.push_back( Move( index, index + 2 ) );
                     }
@@ -836,7 +834,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
-                    if ( !isAttacked( 0b0001110000000000000000000000000000000000000000000000000000000000 ) )
+                    if ( !isAttacked( 0b0001110000000000000000000000000000000000000000000000000000000000, whiteToMove ) )
                     {
                         moves.push_back( Move( index, index - 2 ) );
                     }
@@ -846,9 +844,9 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
     }
 }
 
-bool Board::isAttacked( unsigned long long mask )
+bool Board::isAttacked( unsigned long long mask, bool asWhite )
 {
-    const unsigned short bitboardPieceIndex = whiteToMove ? BLACK : WHITE;
+    const unsigned short bitboardPieceIndex = asWhite ? BLACK : WHITE;
 
     unsigned long long attackerSquares;
 
@@ -862,7 +860,7 @@ bool Board::isAttacked( unsigned long long mask )
         // Pawn
         // Get our own pawn attack mask and look from our square of interest - because that tells us where
         // opponent pawns would need to be to be a threat
-        attackerSquares = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
+        attackerSquares = asWhite ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
         if ( attackerSquares & bitboards[ bitboardPieceIndex + PAWN ] )
         {
             return true;

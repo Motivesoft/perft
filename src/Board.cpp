@@ -1,6 +1,6 @@
 #include "Board.h"
 
-
+#include <bitset>
 #include <iostream>
 #include <sstream>
 
@@ -68,8 +68,8 @@ Board::State Board::makeMove( const Move& move )
     //   halfMove
     //   fullMove
 
-    const unsigned short bitboardPieceIndex = whiteToMove ? 0 : 6;
-    const unsigned short opponentBitboardPieceIndex = whiteToMove ? 6 : 0;
+    const unsigned short bitboardPieceIndex = whiteToMove ? WHITE : BLACK;
+    const unsigned short opponentBitboardPieceIndex = whiteToMove ? BLACK : WHITE;
 
     const unsigned short from = move.getFrom();
     const unsigned short to = move.getTo();
@@ -78,10 +78,13 @@ Board::State Board::makeMove( const Move& move )
     const unsigned long long fromBit = 1ull << move.getFrom();
     const unsigned long long toBit = 1ull << move.getTo();
 
-    unsigned short pieceIndex = boardLUT[ from ];
-    unsigned short destination = boardLUT[ to ];
+    // TODO ignore the LUT for now
+    //unsigned short pieceIndex = boardLUT[ from ];
+    //unsigned short destination = boardLUT[ to ];
+    unsigned short fromPiece = bitboardArrayIndexFromBit( fromBit );
+    unsigned short toPiece = bitboardArrayIndexFromBit( toBit );
 
-    //std::cerr << "Making Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( pieceIndex ) << std::endl;
+    std::cerr << "Making Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( fromPiece ) << std::endl;
 
     // Find which piece is moving and move it, with any required side-effects
     //  - promotion
@@ -93,18 +96,52 @@ Board::State Board::makeMove( const Move& move )
     //  - castling flag update
 
     // With a regular move, it is just a case of moving from->to in a single bitboard and then refreshing the other masks
-    
-    //(bitboards[ pieceIndex ] ^= fromBit) |= toBit;
 
+    // Pick up the piece
+    bitboards[ fromPiece ] ^= fromBit;
+
+    // Deal with a promotion
     if ( promotion )
     {
-
+        // Place the required piece on the board
+        bitboards[ bitboardArrayIndexFromPromotion( promotion ) ] |= toBit;
     }
-
-    if ( destination == USHRT_MAX )
+    else
     {
-
+        // Put the piece down
+        bitboards[ fromPiece ] |= toBit;
     }
+
+    // Deal with a capture (including ep)
+    if ( toPiece != EMPTY )
+    {
+        // A capture - remove the captured piece
+        bitboards[ toPiece ] ^= toBit;
+    }
+    else if ( toBit == enPassantIndex && fromPiece == bitboardPieceIndex + PAWN )
+    {
+        // Remove the enemy pawn from its square one step removed from the ep capture index
+        bitboards[ opponentBitboardPieceIndex + PAWN ] ^= ( whiteToMove ? toBit >> 8 : toBit << 8 );
+    }
+
+    // Deal with castling
+    if ( fromPiece == bitboardPieceIndex + KING && abs( from - to ) == 2 )
+    {
+        // Castling
+        switch( toBit )
+        {
+            case 0b:
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    // Set/reset masks and flags
+
+        //std::cerr << "Enemy pawns (pre):  " << std::bitset<64>{bitboards[ opponentBitboardPieceIndex + PAWN ]} << std::endl;
+        //std::cerr << "Enemy pawns (post): " << std::bitset<64>{bitboards[ opponentBitboardPieceIndex + PAWN ]} << std::endl;
 
     //for ( pieceIndex = 0; pieceIndex < 6; pieceIndex++ )
     //{

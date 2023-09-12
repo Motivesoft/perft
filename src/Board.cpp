@@ -86,8 +86,8 @@ Board::State Board::makeMove( const Move& move )
     unsigned short fromPiece = bitboardArrayIndexFromBit( fromBit );
     unsigned short toPiece = bitboardArrayIndexFromBit( toBit );
 
-    //std::cerr << "Making Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( fromPiece ) << std::endl;
-
+    //std::cerr << "Making Move: " << move.toString() << " for " << (char*) ( whiteToMove ? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( fromPiece ) << std::endl;
+    
     // Find which piece is moving and move it, with any required side-effects
     //  - promotion
     //  - capture
@@ -133,11 +133,11 @@ Board::State Board::makeMove( const Move& move )
         switch( toBit )
         {
             case 0b00000100: // c1
-                movePiece( WHITE + ROOK, 0b00000001, 0b00001000 );
+                movePiece( WHITE + ROOK, 0b00000001, 0b0001000 );
                 break;
 
             case 0b01000000: // g1
-                movePiece( WHITE + ROOK, 0b1000000, 0b00100000 );
+                movePiece( WHITE + ROOK, 0b10000000, 0b00100000 );
                 break;
 
             case 0b0000010000000000000000000000000000000000000000000000000000000000: // c8
@@ -173,11 +173,13 @@ Board::State Board::makeMove( const Move& move )
     // Not that these are board-location sensitive, not whose move it is
     if ( fromPiece == WHITE + KING )
     {
-        castlingRights[ 0 ] = castlingRights[ 1 ] == false;
+        castlingRights[ 0 ] = false;
+        castlingRights[ 1 ] = false;
     }
     else if ( fromPiece == BLACK + KING )
     {
-        castlingRights[ 2 ] = castlingRights[ 3 ] == false;
+        castlingRights[ 2 ] = false;
+        castlingRights[ 3 ] = false;
     }
     if ( ( fromBit | toBit ) & 0b10000000 )
     {

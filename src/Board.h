@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -116,8 +117,8 @@ private:
     /// <param name="to">to bit</param>
     inline void movePiece( unsigned short piece, unsigned long long from, unsigned long long to )
     {
-        bitboards[ piece ] ^= ( from | to );
-        bitboards[ EMPTY ] ^= ( from | to );
+        bitboards[ piece ] ^= (from | to);
+        bitboards[ EMPTY ] ^= (from | to);
     }
 
     /// <summary>

@@ -106,7 +106,8 @@ Board::State Board::makeMove( const Move& move )
     if ( promotion )
     {
         // Place the required piece on the board and handle if this is a capture
-        placePiece( bitboardArrayIndexFromPromotion( promotion ), toBit, toPiece );
+        // The promotion piece in Move is uncolored, so we need to adjust it here
+        placePiece( bitboardPieceIndex + bitboardArrayIndexFromPromotion( promotion ), toBit, toPiece );
     }
     else
     {

@@ -207,9 +207,5 @@ public:
 
     Board::State makeMove( const Move& move );
     void unmakeMove( const Board::State& state );
-
-    // State* makeMove( const Move& move )
-    // undoMove( state )
-    // Where state is undo/redo set of settings - identical to Board, to the point where Board might just use it natively?
 };
 

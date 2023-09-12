@@ -81,6 +81,7 @@ bool processCommandLine( int argc, const char** argv )
         if ( !isdigit( *it ) )
         {
             isDepth = false;
+            break;
         }
     }
 
@@ -131,7 +132,7 @@ bool processCommandLine( int argc, const char** argv )
     {
         if ( arg.size() > 1 )
         {
-            std::string filename = args[ 2 ];
+            std::string filename = args[ 1 ];
 
             executed = Test::perftFile( filename.c_str(), divide );
         }

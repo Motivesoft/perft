@@ -197,9 +197,9 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
     // but we'd need to (a) still think about the divide thing and (b) admit we were no
     // longer comparing like for like with motive-chess and it would be an meaningless win
 
-    for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); it++ )
+    for ( std::vector<Move>::const_iterator it = moves.cbegin(); it != moves.cend(); it++ )
     {
-        Move& move = *it;
+        const Move& move = *it;
 
         Board::State undo = board->makeMove( move );
 

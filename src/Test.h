@@ -8,7 +8,8 @@ class Test
 {
 private:
     static unsigned int perftRun( int depth, const std::string& fen, bool divide );
-    static unsigned int perftLoop( int depth, Board* board, bool divide );
+    static unsigned int divideLoop( int depth, Board* board );
+    static unsigned int perftLoop( int depth, Board* board );
 
     static void report( int depth, unsigned int expected, unsigned int actual );
 

@@ -162,7 +162,7 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
 
     clock_t start = clock();
 
-    unsigned int nodes = perftLoop( depth, board, divide );
+    unsigned int nodes = divide ? divideLoop( depth, board) : perftLoop( depth, board );
 
     clock_t end = clock();
 
@@ -179,7 +179,7 @@ unsigned int Test::perftRun( int depth, const std::string& fen, bool divide )
     return nodes;
 }
 
-unsigned int Test::perftLoop( int depth, Board* board, bool divide )
+unsigned int Test::divideLoop( int depth, Board* board )
 {
     unsigned int nodes = 0;
 
@@ -203,17 +203,10 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
 
         Board::State undo = board->makeMove( move );
 
-        if ( divide )
-        {
-            unsigned long moveNodes = perftLoop( depth - 1, board, false );
-            nodes += moveNodes;
+        unsigned long moveNodes = perftLoop( depth - 1, board );
+        nodes += moveNodes;
 
-            std::cout << "  " << move.toString() << " : " << moveNodes << " " << board->toString() << std::endl;
-        }
-        else
-        {
-            nodes += perftLoop( depth - 1, board, false );
-        }
+        std::cout << "  " << move.toString() << " : " << moveNodes << " " << board->toString() << std::endl;
 
         board->unmakeMove( undo );
     }
@@ -221,6 +214,37 @@ unsigned int Test::perftLoop( int depth, Board* board, bool divide )
     return nodes;
 }
 
+unsigned int Test::perftLoop( int depth, Board* board )
+{
+    unsigned int nodes = 0;
+
+    if ( depth == 0 )
+    {
+        return 1;
+    }
+
+    std::vector<Move> moves;
+    moves.reserve( 256 );
+
+    board->getMoves( moves );
+
+    // We could get an unfair advantage here by returning count of moves if depth is 1
+    // but we'd need to (a) still think about the divide thing and (b) admit we were no
+    // longer comparing like for like with motive-chess and it would be an meaningless win
+
+    for ( std::vector<Move>::const_iterator it = moves.cbegin(); it != moves.cend(); it++ )
+    {
+        const Move& move = *it;
+
+        Board::State undo = board->makeMove( move );
+
+        nodes += perftLoop( depth - 1, board );
+
+        board->unmakeMove( undo );
+    }
+
+    return nodes;
+}
 void Test::report( int depth, unsigned int expected, unsigned int actual )
 {
     if ( expected != actual )

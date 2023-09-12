@@ -76,7 +76,7 @@ Board::State Board::makeMove( const Move& move )
     unsigned short pieceIndex = boardLUT[ from ];
     unsigned short destination = boardLUT[ to ];
 
-    //std::cerr << "Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( pieceIndex ) << std::endl;
+    //std::cerr << "Making Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( pieceIndex ) << std::endl;
 
     // Find which piece is moving and move it, with any required side-effects
     //  - promotion
@@ -88,7 +88,8 @@ Board::State Board::makeMove( const Move& move )
     //  - castling flag update
 
     // With a regular move, it is just a case of moving from->to in a single bitboard and then refreshing the other masks
-    (bitboards[ pieceIndex ] ^= fromBit) |= toBit;
+    
+    //(bitboards[ pieceIndex ] ^= fromBit) |= toBit;
 
     if ( promotion )
     {

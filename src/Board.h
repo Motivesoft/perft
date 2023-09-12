@@ -80,13 +80,37 @@ private:
     }
 
     // Instance methods
-    bool isEmpty( unsigned long long bit ) const;
-    unsigned short bitboardArrayIndexFromBit( unsigned long long bit ) const;
+    inline bool isEmpty( unsigned long long bit ) const;
+
+    /// <summary>
+    /// Find which bitboard array has bit set and return its index
+    /// </summary>
+    /// <param name="bit"></param>
+    /// <returns></returns>
+    inline unsigned short bitboardArrayIndexFromBit( unsigned long long bit ) const;
 
     // Static methods
-    static const char pieceFromBitboardArrayIndex( unsigned short arrayIndex );
-    static unsigned short bitboardArrayIndexFromPiece( const char piece );
-    static unsigned long bitboardArrayIndexFromPromotion( unsigned long promotion )
+
+    /// <summary>
+    /// Piece letteer from bitboard array index
+    /// </summary>
+    /// <param name="arrayIndex"></param>
+    /// <returns></returns>
+    inline static const char pieceFromBitboardArrayIndex( unsigned short arrayIndex );
+
+    /// <summary>
+    /// Bitboard array index from piece letter
+    /// </summary>
+    /// <param name="piece"></param>
+    /// <returns></returns>
+    inline static unsigned short bitboardArrayIndexFromPiece( const char piece );
+
+    /// <summary>
+    /// Convert Move representation of piece to bitboard array index
+    /// </summary>
+    /// <param name="promotion"></param>
+    /// <returns></returns>
+    inline static unsigned long bitboardArrayIndexFromPromotion( unsigned long promotion )
     {
         return promotion == Move::KNIGHT ? 
             KNIGHT : promotion == Move::BISHOP ? 

@@ -156,6 +156,13 @@ private:
     void getQueenMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces );
     void getKingMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares );
 
+    /// <summary>
+    /// Returns true if any square indicated in the mask is attacked by the current opponent
+    /// </summary>
+    /// <param name="mask">bit or bits to test</param>
+    /// <returns>true if the opponent is currently attacking any of these squares</returns>
+    bool isAttacked( unsigned long long mask );
+
     typedef unsigned long long ( *DirectionMask )( const unsigned long );
     typedef unsigned char ( *BitScanner )( unsigned long*, unsigned long long );
 

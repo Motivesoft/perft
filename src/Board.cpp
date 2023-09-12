@@ -50,8 +50,13 @@ void Board::getMoves( std::vector<Move>& moves )
 
     // King (including castling, castling flag set)
     getKingMoves( moves, bitboardPieceIndex + KING, accessibleSquares );
+
+    // TODO is the king in check after any of these moves?
+    // TODO if we are castling, is the king travelling out of or through check?
 }
 
+// TODO turn this into two methods - makeMove that creates and returns a state and calls applyMove, which does only that
+// then we can call applyMove multiple times and restore from a single state in for-each-move loops
 Board::State Board::makeMove( const Move& move )
 {
     Board::State state( *this );
@@ -756,8 +761,6 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
     pieces = bitboards[ pieceIndex ];
     if ( _BitScanForward64( &index, pieces ) )
     {
-        pieces ^= 1ull << index;
-
         unsigned long long possibleMoves = BitBoard::getKingMoveMask( index );
 
         possibleMoves &= accessibleSquares;
@@ -780,7 +783,11 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
-                    moves.push_back( Move( index, index + 2 ) );
+                    // Test for the king travelling through check
+                    if ( !isAttacked( 0b01110000 ) )
+                    {
+                        moves.push_back( Move( index, index + 2 ) );
+                    }
                 }
             }
             if ( castlingRights[ 1 ] )
@@ -789,7 +796,10 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
-                    moves.push_back( Move( index, index - 2 ) );
+                    if ( !isAttacked( 0b00011100 ) )
+                    {
+                        moves.push_back( Move( index, index - 2 ) );
+                    }
                 }
             }
         }
@@ -801,7 +811,10 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
-                    moves.push_back( Move( index, index + 2 ) );
+                    if ( !isAttacked( 0b0111000000000000000000000000000000000000000000000000000000000000 ) )
+                    {
+                        moves.push_back( Move( index, index + 2 ) );
+                    }
                 }
             }
             if ( castlingRights[ 3 ] )
@@ -810,11 +823,38 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
                 if ( ( allEmptySquares & castlingMask ) == castlingMask )
                 {
-                    moves.push_back( Move( index, index - 2 ) );
+                    if ( !isAttacked( 0b0001110000000000000000000000000000000000000000000000000000000000 ) )
+                    {
+                        moves.push_back( Move( index, index - 2 ) );
+                    }
                 }
             }
         }
     }
+}
+
+bool Board::isAttacked( unsigned long long mask )
+{
+    const unsigned short bitboardPieceIndex = whiteToMove ? BLACK : WHITE;
+
+    // For each mask square...
+
+    unsigned long index;
+    while ( _BitScanForward64( &index, mask ) )
+    {
+        mask ^= 1ull << index;
+
+        // Get our own pawn attack mask and look from our square of interest - because that tells us where
+        // opponent pawns would need to be to be a threat
+        unsigned long long attackerSquares = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
+        if ( attackerSquares & bitboards[ bitboardPieceIndex + PAWN ] )
+        {
+            return true;
+        }
+    }
+
+
+    return false;
 }
 
 // Pass a scanner in here so that we can look either forward or reverse to make sure we check the closest attacker/blocker and

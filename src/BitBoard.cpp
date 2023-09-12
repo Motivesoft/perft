@@ -62,54 +62,53 @@ void BitBoard::initialize()
         pawnMovesAttackWhite[ square ] = 0;
         pawnMovesAttackBlack[ square ] = 0;
 
-        // Pawns don't move from first or last ranks
-        if ( rank < 7 && rank > 0 )
+        // Pawns don't move from first or last ranks - but we are going to encode them anyway
+        // as the masks can be used in other ways and there is no penalty to over-populating this
+
+        // White pawn
+        pawnMovesNormalWhite[ square ] = 1ull << ( square + 8 );
+
+        // Initial double move
+        if ( rank == 1 )
         {
-            // White pawn
-            pawnMovesNormalWhite[ square ] = 1ull << ( square + 8 );
+            pawnMovesExtendedWhite[ square ] = 1ull << ( square + 16 );
+        }
 
-            // Initial double move
-            if ( rank == 1 )
-            {
-                pawnMovesExtendedWhite[ square ] = 1ull << ( square + 16 );
-            }
+        // Capture
+        if ( file == 7 )
+        {
+            pawnMovesAttackWhite[ square ] = 1ull << ( square + 7 );
+        }
+        else if ( file == 0 )
+        {
+            pawnMovesAttackWhite[ square ] = 1ull << ( square + 9 );
+        }
+        else
+        {
+            pawnMovesAttackWhite[ square ] = (1ull << ( square + 7 )) | (1ull << ( square + 9 ));
+        }
 
-            // Capture
-            if ( file == 7 )
-            {
-                pawnMovesAttackWhite[ square ] = 1ull << ( square + 7 );
-            }
-            else if ( file == 0 )
-            {
-                pawnMovesAttackWhite[ square ] = 1ull << ( square + 9 );
-            }
-            else
-            {
-                pawnMovesAttackWhite[ square ] = (1ull << ( square + 7 )) | (1ull << ( square + 9 ));
-            }
+        // Black pawn
+        pawnMovesNormalBlack[ square ] = 1ull << ( square - 8 );
 
-            // Black pawn
-            pawnMovesNormalBlack[ square ] = 1ull << ( square - 8 );
+        // Initial double move
+        if ( rank == 6 )
+        {
+            pawnMovesExtendedBlack[ square ] = 1ull << ( square - 16 );
+        }
 
-            // Initial double move
-            if ( rank == 6 )
-            {
-                pawnMovesExtendedBlack[ square ] = 1ull << ( square - 16 );
-            }
-
-            // Capture
-            if ( file == 7 )
-            {
-                pawnMovesAttackBlack[ square ] = 1ull << ( square - 9 );
-            }
-            else if ( file == 0 )
-            {
-                pawnMovesAttackBlack[ square ] = 1ull << ( square - 7 );
-            }
-            else
-            {
-                pawnMovesAttackBlack[ square ] = ( 1ull << ( square - 7 ) ) | ( 1ull << ( square - 9 ) );
-            }
+        // Capture
+        if ( file == 7 )
+        {
+            pawnMovesAttackBlack[ square ] = 1ull << ( square - 9 );
+        }
+        else if ( file == 0 )
+        {
+            pawnMovesAttackBlack[ square ] = 1ull << ( square - 7 );
+        }
+        else
+        {
+            pawnMovesAttackBlack[ square ] = ( 1ull << ( square - 7 ) ) | ( 1ull << ( square - 9 ) );
         }
 
         // Knights

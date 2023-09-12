@@ -55,12 +55,12 @@ void Board::getMoves( std::vector<Move>& moves )
     Board::State state( *this );
     for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); )
     {
-        std::cerr << "Trying " << ( *it ).toString() << std::endl;
+        //std::cerr << "Trying " << ( *it ).toString() << std::endl;
         applyMove( *it );
         whiteToMove = !whiteToMove;
         if ( isAttacked( bitboards[ bitboardPieceIndex + KING ] ) )
         {
-            std::cerr << "Erasing " << ( *it ).toString() << std::endl;
+            //std::cerr << "Erasing " << ( *it ).toString() << std::endl;
             it = moves.erase( it );
         }
         else
@@ -174,7 +174,7 @@ void Board::applyMove( const Move& move )
     // If a pawn move of two squares, set the ep flag
     if ( fromPiece == bitboardPieceIndex + PAWN && abs( from - to ) == 16 )
     {
-        enPassantIndex = from + ( ( to - from ) / 2 );
+        enPassantIndex = 1ull << (from + ( ( to - from ) / 2 ) );
     }
     else
     {
@@ -869,7 +869,7 @@ bool Board::isAttacked( unsigned long long mask )
         }
 
         // Knight
-        // Somewhat like the pawn, we can look at the knight moves from where we are and see if attackers live there
+        // Somewhat like the pawn, we can look at the knight moves from where we are and see if attackers are there
         attackerSquares = BitBoard::getKnightMoveMask( index );
 
         if ( attackerSquares & bitboards[ bitboardPieceIndex + KNIGHT ] )
@@ -896,7 +896,7 @@ bool Board::isAttacked( unsigned long long mask )
         }
 
         // King
-        attackerSquares = BitBoard::getKnightMoveMask( index );
+        attackerSquares = BitBoard::getKingMoveMask( index );
 
         if ( attackerSquares & bitboards[ bitboardPieceIndex + KING ] )
         {

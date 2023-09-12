@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -119,12 +120,53 @@ private:
     /// </summary>
     /// <param name="promotion"></param>
     /// <returns></returns>
-    inline static unsigned long bitboardArrayIndexFromPromotion( unsigned long promotion )
+    inline static unsigned short bitboardArrayIndexFromPromotion( unsigned long promotion )
     {
         return promotion == Move::KNIGHT ? 
             KNIGHT : promotion == Move::BISHOP ? 
             BISHOP : promotion == Move::ROOK ? 
             ROOK : QUEEN;
+    }
+
+    /// <summary>
+    /// Move a piece where there is no captured involved - e.g. moving the rook during castling
+    /// </summary>
+    /// <param name="piece">which piece (bitboard index)</param>
+    /// <param name="from">from bit</param>
+    /// <param name="to">to bit</param>
+    inline void movePiece( unsigned short piece, unsigned long long from, unsigned long long to )
+    {
+        bitboards[ piece ] ^= ( from | to );
+        bitboards[ EMPTY ] ^= ( from | to );
+    }
+
+    /// <summary>
+    /// Remove a piece from the board
+    /// </summary>
+    /// <param name="piece">the piece</param>
+    /// <param name="location">location bit</param>
+    inline void liftPiece( unsigned short piece, unsigned long long location )
+    {
+        bitboards[ piece ] ^= location;
+        bitboards[ EMPTY ] ^= location;
+    }
+
+    /// <summary>
+    /// Put a piece onto the board, and deal with whether it is a capture
+    /// </summary>
+    /// <param name="piece"></param>
+    /// <param name="location"></param>
+    /// <param name="replacingPiece"></param>
+    inline void placePiece( unsigned short piece, unsigned long long location, unsigned short replacingPiece )
+    {
+        // Remove from all places and then put back into one place - brute force, but allows it to deal with captures
+        //for ( std::array<unsigned long long, 13>::iterator it = bitboards.begin(); it != bitboards.end(); it++ )
+        //{
+        //    (*it) &= ~location;
+        //}
+
+        bitboards[ piece ] |= location;
+        bitboards[ replacingPiece ] &= ~location;
     }
 
     void getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces );

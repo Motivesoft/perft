@@ -91,51 +91,86 @@ Board::State Board::makeMove( const Move& move )
     //  - capture
     //  - capture through promotion
     //  - ep capture
-    //  - ep flag update
     //  - castling
+    //  - ep flag update
     //  - castling flag update
 
     // With a regular move, it is just a case of moving from->to in a single bitboard and then refreshing the other masks
 
     // Pick up the piece
-    bitboards[ fromPiece ] ^= fromBit;
+    liftPiece( fromPiece, fromBit );
 
     // Deal with a promotion
     if ( promotion )
     {
         // Place the required piece on the board
-        bitboards[ bitboardArrayIndexFromPromotion( promotion ) ] |= toBit;
+        placePiece( bitboardArrayIndexFromPromotion( promotion ), toBit, toPiece );
     }
     else
     {
         // Put the piece down
-        bitboards[ fromPiece ] |= toBit;
+        placePiece( fromPiece, toBit, toPiece );
     }
 
     // Deal with a capture (including ep)
-    if ( toPiece != EMPTY )
-    {
-        // A capture - remove the captured piece
-        bitboards[ toPiece ] ^= toBit;
-    }
-    else if ( toBit == enPassantIndex && fromPiece == bitboardPieceIndex + PAWN )
+    //if ( toPiece != EMPTY )
+    //{
+    //    // A capture - remove the captured piece
+    //    bitboards[ toPiece ] ^= toBit;
+    //}
+    //else 
+    if ( toBit == enPassantIndex && fromPiece == bitboardPieceIndex + PAWN )
     {
         // Remove the enemy pawn from its square one step removed from the ep capture index
-        bitboards[ opponentBitboardPieceIndex + PAWN ] ^= ( whiteToMove ? toBit >> 8 : toBit << 8 );
+        //bitboards[ opponentBitboardPieceIndex + PAWN ] ^= ( whiteToMove ? toBit >> 8 : toBit << 8 );
+        // Remove the captured pawn
+        liftPiece( opponentBitboardPieceIndex + PAWN, ( whiteToMove ? toBit >> 8 : toBit << 8 ) );
     }
 
     // Deal with castling
     if ( fromPiece == bitboardPieceIndex + KING && abs( from - to ) == 2 )
     {
-        // Castling
+        // Castling - work out which by looking at the "to" - which will be one of c1, g1, c8, g8
+        // remembering that the bits are from a1-h8 but when expressed as a binary number, look reversed
+        // Use this info to move the rook
         switch( toBit )
         {
-            case 0b:
+            case 0b00000100: // c1
+                movePiece( WHITE + ROOK, 0b00000001, 0b00001000 );
+                break;
+
+            case 0b01000000: // g1
+                movePiece( WHITE + ROOK, 0b1000000, 0b00100000 );
+                break;
+
+            case 0b0000010000000000000000000000000000000000000000000000000000000000: // c8
+                movePiece( BLACK + ROOK,
+                           0b0000000100000000000000000000000000000000000000000000000000000000,
+                           0b0000100000000000000000000000000000000000000000000000000000000000 );
+                break;
+
+            case 0b0100000000000000000000000000000000000000000000000000000000000000: // g8
+                movePiece( BLACK + ROOK, 
+                           0b1000000000000000000000000000000000000000000000000000000000000000, 
+                           0b0010000000000000000000000000000000000000000000000000000000000000 );
+                bitboards[ BLACK + ROOK ] ^= 0b1010000000000000000000000000000000000000000000000000000000000000;
                 break;
 
             default:
                 break;
         }
+    }
+
+    // Flag setting
+    // 
+    // If a pawn move of two sqaures, set the ep flag
+    if ( fromPiece == bitboardPieceIndex + PAWN && abs( from - to ) == 16 )
+    {
+        enPassantIndex = from + ( ( to - from ) / 2 );
+    }
+    else
+    {
+        enPassantIndex = 0;
     }
 
     // Set/reset masks and flags
@@ -193,6 +228,14 @@ Board::State Board::makeMove( const Move& move )
     whiteToMove = !whiteToMove;
 
     //resetMasks();
+
+    unsigned long long test = 0;
+    for ( std::array<unsigned long long, 13>::const_iterator it = bitboards.cbegin(); it != bitboards.cend(); it++ )
+    {
+        test |= *it;
+    }
+    if( test != ULLONG_MAX )
+    std::cerr << "Test after makeMove: " << (test == ULLONG_MAX ? "Pass" : "**Fail**" ) << std::endl;
 
     return state;
 }
@@ -469,7 +512,7 @@ unsigned short Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
 
     // Shouldn't get here
     std::cerr << "Unexpected failure" << std::endl;
-    return USHRT_MAX;
+    return 0;
 }
 
 const char Board::pieceFromBitboardArrayIndex( unsigned short arrayIndex )

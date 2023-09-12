@@ -52,7 +52,24 @@ void Board::getMoves( std::vector<Move>& moves )
     getKingMoves( moves, bitboardPieceIndex + KING, accessibleSquares );
 
     // TODO is the king in check after any of these moves?
-    // TODO if we are castling, is the king travelling out of or through check?
+    Board::State state( *this );
+    for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); )
+    {
+        std::cerr << "Trying " << ( *it ).toString() << std::endl;
+        applyMove( *it );
+        whiteToMove = !whiteToMove;
+        if ( isAttacked( bitboards[ bitboardPieceIndex + KING ] ) )
+        {
+            std::cerr << "Erasing " << ( *it ).toString() << std::endl;
+            it = moves.erase( it );
+        }
+        else
+        {
+            it++;
+        }
+        whiteToMove = !whiteToMove;
+        unmakeMove( state );
+    }
 }
 
 // TODO turn this into two methods - makeMove that creates and returns a state and calls applyMove, which does only that
@@ -60,19 +77,14 @@ void Board::getMoves( std::vector<Move>& moves )
 Board::State Board::makeMove( const Move& move )
 {
     Board::State state( *this );
+    
+    applyMove( move );
+    
+    return state;
+}
 
-    // TODO the actual make move stuff here
-    //   basic piece move 
-    //      capture
-    //      ep
-    //      castling 
-    //      promotion
-    //   whiteToMove
-    //   castling
-    //   ep index
-    //   halfMove
-    //   fullMove
-
+void Board::applyMove( const Move& move )
+{
     const unsigned short bitboardPieceIndex = whiteToMove ? WHITE : BLACK;
     const unsigned short opponentBitboardPieceIndex = whiteToMove ? BLACK : WHITE;
 
@@ -221,8 +233,6 @@ Board::State Board::makeMove( const Move& move )
     // TODO an option is to avoid adjusting empty along the way and make it from these two here
     whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
     blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
-
-    return state;
 }
 
 void Board::unmakeMove( const Board::State& state )

@@ -21,15 +21,11 @@ private:
     static const unsigned short QUEEN;
     static const unsigned short KING;
 
-    // Holds references to bitboards - e.g. 0 (a1) will point to the white rook bitboard with the start position
-    std::array<unsigned short, 64> boardLUT;
-
     // Lucky 13 - empty, 6 white pieces, 6 black pieces
     std::array<unsigned long long, 13> bitboards;
 
     unsigned long long whitePieces;
     unsigned long long blackPieces;
-    unsigned long long allPieces;
 
     bool whiteToMove;
 
@@ -55,12 +51,6 @@ private:
     {
         whitePieces = blackPieces = 0;
 
-        // Build a lookup table that goes from board index (0-63) to bitboardArrayIndex (0-11 or USHRT_MAX)
-        for ( unsigned short loop = 0; loop < 64; loop++ )
-        {
-            boardLUT[ loop ] = 0;
-        }
-
         for ( size_t loop = WHITE; loop < bitboards.size(); loop++ )
         {
             if ( loop < BLACK )
@@ -71,17 +61,7 @@ private:
             {
                 blackPieces |= bitboards[ loop ];
             }
-
-            unsigned long index;
-            unsigned long long bitboard = bitboards[ loop ];
-            while ( _BitScanForward64( &index, bitboard ) )
-            {
-                bitboard ^= 1ull << index;
-                boardLUT[ index ] = static_cast<unsigned short>( loop );
-            }
         }
-
-        allPieces = whitePieces | blackPieces;
     }
 
     // Instance methods
@@ -208,11 +188,8 @@ public:
         unsigned short halfMoveClock;
         unsigned short fullMoveNumber;
 
-        std::array<unsigned short, 64> boardLUT;
-
         unsigned long long whitePieces;
         unsigned long long blackPieces;
-        unsigned long long allPieces;
 
     public:
         State( const Board& board );

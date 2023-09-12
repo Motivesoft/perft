@@ -78,13 +78,10 @@ Board::State Board::makeMove( const Move& move )
     const unsigned long long fromBit = 1ull << move.getFrom();
     const unsigned long long toBit = 1ull << move.getTo();
 
-    // TODO ignore the LUT for now
-    //unsigned short pieceIndex = boardLUT[ from ];
-    //unsigned short destination = boardLUT[ to ];
     unsigned short fromPiece = bitboardArrayIndexFromBit( fromBit );
     unsigned short toPiece = bitboardArrayIndexFromBit( toBit );
 
-    std::cerr << "Making Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( fromPiece ) << std::endl;
+    //std::cerr << "Making Move: " << move.toString() << " for " << (char*)(whiteToMove? "white" : "black" ) << " with a " << pieceFromBitboardArrayIndex( fromPiece ) << std::endl;
 
     // Find which piece is moving and move it, with any required side-effects
     //  - promotion
@@ -214,11 +211,8 @@ Board::State Board::makeMove( const Move& move )
         halfMoveClock++;
     }
 
-    // RESET WHITE/BLACK MASKS
-    // SET FULL and HALF
-    
-     
-    //resetMasks();
+    whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
+    blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
 
     unsigned long long test = 0;
     for ( std::array<unsigned long long, 13>::const_iterator it = bitboards.cbegin(); it != bitboards.cend(); it++ )
@@ -226,7 +220,9 @@ Board::State Board::makeMove( const Move& move )
         test |= *it;
     }
     if( test != ULLONG_MAX )
-    std::cerr << "Test after makeMove: " << (test == ULLONG_MAX ? "Pass" : "**Fail**" ) << std::endl;
+        std::cerr << "Test 1 after makeMove: " << ( test == ULLONG_MAX ? "Pass" : "**Fail**" ) << std::endl;
+    if ( (emptySquares() | whitePieces | blackPieces ) != ULLONG_MAX )
+        std::cerr << "Test 2 after makeMove: " << ( ( emptySquares() | whitePieces | blackPieces ) == ULLONG_MAX ? "Pass" : "**Fail**" ) << std::endl;
 
     return state;
 }
@@ -564,10 +560,8 @@ Board::State::State( const Board& board ) :
     enPassantIndex( board.enPassantIndex ),
     halfMoveClock( board.halfMoveClock ),
     fullMoveNumber( board.fullMoveNumber ),
-    boardLUT( board.boardLUT ),
     whitePieces( board.whitePieces ),
-    blackPieces( board.blackPieces ),
-    allPieces( board.allPieces )
+    blackPieces( board.blackPieces )
 {
 }
 
@@ -579,10 +573,8 @@ void Board::State::apply( Board& board ) const
     board.enPassantIndex = enPassantIndex;
     board.halfMoveClock = halfMoveClock;
     board.fullMoveNumber = fullMoveNumber;
-    board.boardLUT = boardLUT;
     board.whitePieces = whitePieces;
     board.blackPieces = blackPieces;
-    board.allPieces = allPieces;
 }
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )

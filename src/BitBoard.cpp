@@ -29,10 +29,10 @@ unsigned long long BitBoard::knightMoves[ 64 ];
 unsigned long long BitBoard::kingMoves[ 64 ];
 
 // Indicate the spaces that need to be empty for castling to be allowed
-unsigned long long BitBoard::whiteKingsideCastlingMask  = 0b00000000000000000000000000000000000000000000000000000000001100000;
-unsigned long long BitBoard::whiteQueensideCastlingMask = 0b00000000000000000000000000000000000000000000000000000000000001110;
-unsigned long long BitBoard::blackKingsideCastlingMask  = 0b01100000000000000000000000000000000000000000000000000000000000000;
-unsigned long long BitBoard::blackQueensideCastlingMask = 0b00001110000000000000000000000000000000000000000000000000000000000;
+unsigned long long BitBoard::whiteKingsideCastlingMask  = 0b0000000000000000000000000000000000000000000000000000000001100000;
+unsigned long long BitBoard::whiteQueensideCastlingMask = 0b0000000000000000000000000000000000000000000000000000000000001110;
+unsigned long long BitBoard::blackKingsideCastlingMask  = 0b0110000000000000000000000000000000000000000000000000000000000000;
+unsigned long long BitBoard::blackQueensideCastlingMask = 0b0000111000000000000000000000000000000000000000000000000000000000;
 
 void BitBoard::initialize()
 {

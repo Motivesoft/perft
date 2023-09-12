@@ -100,22 +100,16 @@ Board::State Board::makeMove( const Move& move )
     // Deal with a promotion
     if ( promotion )
     {
-        // Place the required piece on the board
+        // Place the required piece on the board and handle if this is a capture
         placePiece( bitboardArrayIndexFromPromotion( promotion ), toBit, toPiece );
     }
     else
     {
-        // Put the piece down
+        // Put the piece down and handle if this is a capture
         placePiece( fromPiece, toBit, toPiece );
     }
 
-    // Deal with a capture (including ep)
-    //if ( toPiece != EMPTY )
-    //{
-    //    // A capture - remove the captured piece
-    //    bitboards[ toPiece ] ^= toBit;
-    //}
-    //else 
+    // If this is ep, remove the opponent pawn
     if ( toBit == enPassantIndex && fromPiece == bitboardPieceIndex + PAWN )
     {
         // Remove the enemy pawn from its square one step removed from the ep capture index
@@ -160,7 +154,7 @@ Board::State Board::makeMove( const Move& move )
 
     // Flag setting
 
-    // If a pawn move of two sqaures, set the ep flag
+    // If a pawn move of two squares, set the ep flag
     if ( fromPiece == bitboardPieceIndex + PAWN && abs( from - to ) == 16 )
     {
         enPassantIndex = from + ( ( to - from ) / 2 );
@@ -170,11 +164,13 @@ Board::State Board::makeMove( const Move& move )
         enPassantIndex = 0;
     }
 
+    // Reset the castling flags based on king or rook movement (including rook capture)
+    // Not that these are board-location sensitive, not whose move it is
     if ( fromPiece == WHITE + KING )
     {
         castlingRights[ 0 ] = castlingRights[ 1 ] == false;
     }
-    else if ( fromPiece == WHITE + KING )
+    else if ( fromPiece == BLACK + KING )
     {
         castlingRights[ 2 ] = castlingRights[ 3 ] == false;
     }
@@ -182,7 +178,7 @@ Board::State Board::makeMove( const Move& move )
     {
         castlingRights[ 0 ] = false;
     }
-    if ( (fromBit | toBit) & 0b00000001 )
+    if ( ( fromBit | toBit ) & 0b00000001 )
     {
         castlingRights[ 1 ] = false;
     }
@@ -195,6 +191,8 @@ Board::State Board::makeMove( const Move& move )
         castlingRights[ 3 ] = false;
     }
 
+    // Complete the setup at the end of this move
+
     whiteToMove = !whiteToMove;
 
     if ( whiteToMove )
@@ -202,6 +200,7 @@ Board::State Board::makeMove( const Move& move )
         fullMoveNumber++;
     }
 
+    // Counts towards 50 move rule unless a pawn move or a capture
     if ( fromPiece == bitboardPieceIndex + PAWN || toPiece != EMPTY )
     {
         halfMoveClock = 0;
@@ -211,18 +210,10 @@ Board::State Board::makeMove( const Move& move )
         halfMoveClock++;
     }
 
+    // Rebuild the final set of masks - hopefully as quick to do it this was as any other
+    // TODO an option is to avoid adjusting empty along the way and make it from these two here
     whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
     blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
-
-    unsigned long long test = 0;
-    for ( std::array<unsigned long long, 13>::const_iterator it = bitboards.cbegin(); it != bitboards.cend(); it++ )
-    {
-        test |= *it;
-    }
-    if( test != ULLONG_MAX )
-        std::cerr << "Test 1 after makeMove: " << ( test == ULLONG_MAX ? "Pass" : "**Fail**" ) << std::endl;
-    if ( (emptySquares() | whitePieces | blackPieces ) != ULLONG_MAX )
-        std::cerr << "Test 2 after makeMove: " << ( ( emptySquares() | whitePieces | blackPieces ) == ULLONG_MAX ? "Pass" : "**Fail**" ) << std::endl;
 
     return state;
 }

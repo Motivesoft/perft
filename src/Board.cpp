@@ -162,7 +162,7 @@ Board::State Board::makeMove( const Move& move )
     }
 
     // Flag setting
-    // 
+
     // If a pawn move of two sqaures, set the ep flag
     if ( fromPiece == bitboardPieceIndex + PAWN && abs( from - to ) == 16 )
     {
@@ -173,60 +173,35 @@ Board::State Board::makeMove( const Move& move )
         enPassantIndex = 0;
     }
 
-    // Set/reset masks and flags
-
-        //std::cerr << "Enemy pawns (pre):  " << std::bitset<64>{bitboards[ opponentBitboardPieceIndex + PAWN ]} << std::endl;
-        //std::cerr << "Enemy pawns (post): " << std::bitset<64>{bitboards[ opponentBitboardPieceIndex + PAWN ]} << std::endl;
-
-    //for ( pieceIndex = 0; pieceIndex < 6; pieceIndex++ )
-    //{
-    //    if ( bitboards[ bitboardPieceIndex + pieceIndex ] & fromBit )
-    //    {
-    //        std::cerr << "  Piece: " << pieceFromBitboardArrayIndex( bitboardPieceIndex + pieceIndex ) << std::endl;
-
-    //        // Remove the piece from
-    //        std::cerr << "Removing from " << from;
-    //        bitboards[ bitboardPieceIndex + pieceIndex ] ^= fromBit;
-
-    //        if ( promotion )
-    //        {
-    //            std::cerr << " promoting at " << to << std::endl;
-    //            bitboards[ bitboardPieceIndex + bitboardArrayIndexFromPromotion( promotion ) ] |= toBit;
-    //        }
-    //        else
-    //        {
-    //            std::cerr << " placing at " << to << std::endl;
-    //            BitBoard::dumpBitBoard( bitboards[ bitboardPieceIndex + pieceIndex ], " Before" );
-    //            bitboards[ bitboardPieceIndex + pieceIndex ] |= toBit;
-    //            BitBoard::dumpBitBoard( bitboards[ bitboardPieceIndex + pieceIndex ], " After" );
-    //        }
-
-    //        break;
-    //    }
-    //}
-
-    //// Deal with a capture - ep or otherwise
-    //if ( toBit == enPassantIndex && pieceIndex == PAWN )
-    //{
-    //    std::cerr << "EP capture" << std::endl;
-
-    //    // Clear enemy pawn from where it actually is
-    //    bitboards[ opponentBitboardPieceIndex + PAWN ] ^= (whiteToMove ? toBit << 8 : toBit >> 8);
-    //    BitBoard::dumpBitBoard( bitboards[ bitboardPieceIndex + pieceIndex ], " Mine" );
-    //    BitBoard::dumpBitBoard( bitboards[ opponentBitboardPieceIndex + PAWN ], " Theirs" );
-    //}
-    //else
-    //{
-    //    unsigned short capturedPiece = bitboardArrayIndexFromBit( toBit );
-    //    if ( capturedPiece |= USHRT_MAX )
-    //    {
-    //        bitboards[ capturedPiece ] ^= toBit;
-    //    }
-
-    //}
+    if ( fromPiece == WHITE + KING )
+    {
+        castlingRights[ 0 ] = castlingRights[ 1 ] == false;
+    }
+    else if ( fromPiece == WHITE + KING )
+    {
+        castlingRights[ 2 ] = castlingRights[ 3 ] == false;
+    }
+    if ( ( fromBit | toBit ) & 0b10000000 )
+    {
+        castlingRights[ 0 ] = false;
+    }
+    if ( (fromBit | toBit) & 0b00000001 )
+    {
+        castlingRights[ 1 ] = false;
+    }
+    if ( ( fromBit | toBit ) & 0b1000000000000000000000000000000000000000000000000000000000000000 )
+    {
+        castlingRights[ 2 ] = false;
+    }
+    if ( ( fromBit | toBit ) & 0b0000000100000000000000000000000000000000000000000000000000000000 )
+    {
+        castlingRights[ 3 ] = false;
+    }
 
     whiteToMove = !whiteToMove;
 
+    // RESET WHITE/BLACK MASKS
+    
     //resetMasks();
 
     unsigned long long test = 0;

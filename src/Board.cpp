@@ -837,6 +837,8 @@ bool Board::isAttacked( unsigned long long mask )
 {
     const unsigned short bitboardPieceIndex = whiteToMove ? BLACK : WHITE;
 
+    unsigned long long attackerSquares;
+
     // For each mask square...
 
     unsigned long index;
@@ -844,15 +846,66 @@ bool Board::isAttacked( unsigned long long mask )
     {
         mask ^= 1ull << index;
 
+        // Pawn
         // Get our own pawn attack mask and look from our square of interest - because that tells us where
         // opponent pawns would need to be to be a threat
-        unsigned long long attackerSquares = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
+        attackerSquares = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
         if ( attackerSquares & bitboards[ bitboardPieceIndex + PAWN ] )
+        {
+            return true;
+        }
+
+        // Knight
+        // Somewhat like the pawn, we can look at the knight moves from where we are and see if attackers live there
+        attackerSquares = BitBoard::getKnightMoveMask( index );
+
+        if ( attackerSquares & bitboards[ bitboardPieceIndex + KNIGHT ] )
+        {
+            return true;
+        }
+
+        // Bishop + Queen
+        if ( isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getNorthWestMoveMask, scanForward ) ||
+             isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getNorthEastMoveMask, scanForward ) ||
+             isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getSouthWestMoveMask, scanReverse ) ||
+             isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getSouthEastMoveMask, scanReverse ) )
+        {
+            return true;
+        }
+
+        // Rook + Queen
+        if ( isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getNorthMoveMask, scanForward ) || 
+             isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getWestMoveMask, scanForward ) || 
+             isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getSouthMoveMask, scanReverse ) || 
+             isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getEastMoveMask, scanReverse ) )
+        {
+            return true;
+        }
+
+        // King
+        attackerSquares = BitBoard::getKnightMoveMask( index );
+
+        if ( attackerSquares & bitboards[ bitboardPieceIndex + KING ] )
         {
             return true;
         }
     }
 
+    return false;
+}
+
+bool Board::isAttacked( const unsigned long& index, const unsigned long long& attackingPieces, DirectionMask directionMask, BitScanner bitScanner )
+{
+    unsigned long long attackMask = directionMask( index ) & ~emptySquares();
+
+    unsigned long closest;
+    if ( bitScanner( &closest, attackMask ) )
+    {
+        if ( attackingPieces & ( 1ull << closest ) )
+        {
+            return true;
+        }
+    }
 
     return false;
 }

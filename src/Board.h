@@ -113,7 +113,7 @@ private:
     inline void liftPiece( unsigned short piece, unsigned long long location )
     {
         bitboards[ piece ] ^= location;
-        //bitboards[ EMPTY ] ^= location;
+        bitboards[ EMPTY ] ^= location;
     }
 
     /// <summary>
@@ -126,10 +126,7 @@ private:
     {
         // Put the piece into its new location and remove whatever was there from its boards (includes EMPTY)
         bitboards[ piece ] ^= location;
-        if ( replacingPiece > EMPTY )
-        {
-            bitboards[ replacingPiece ] ^= location;
-        }
+        bitboards[ replacingPiece ] ^= location;
     }
 
     void getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces );

@@ -615,18 +615,18 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
             if ( rankFrom == homeRankFrom )
             {
                 baselinePawns |= 1ull << index;
-                moves.push_back( Move( index, destination ) );
+                moves.emplace_back( index, destination );
             }
             else if ( rankFrom == promotionRankFrom )
             {
-                moves.push_back( Move( index, destination, Move::KNIGHT ) );
-                moves.push_back( Move( index, destination, Move::BISHOP ) );
-                moves.push_back( Move( index, destination, Move::ROOK ) );
-                moves.push_back( Move( index, destination, Move::QUEEN ) );
+                moves.emplace_back( index, destination, Move::KNIGHT );
+                moves.emplace_back( index, destination, Move::BISHOP );
+                moves.emplace_back( index, destination, Move::ROOK );
+                moves.emplace_back( index, destination, Move::QUEEN );
             }
             else
             {
-                moves.push_back( Move( index, destination ) );
+                moves.emplace_back( index, destination );
             }
         }
     }
@@ -646,7 +646,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
             possibleMoves ^= 1ull << destination;
 
             // No need to check promotion here as this is only for pawns on their home rank
-            moves.push_back( Move( index, destination ) );
+            moves.emplace_back( index, destination );
         }
     }
 
@@ -667,14 +667,14 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
             if ( rankFrom == promotionRankFrom )
             {
-                moves.push_back( Move( index, destination, Move::KNIGHT ) );
-                moves.push_back( Move( index, destination, Move::BISHOP ) );
-                moves.push_back( Move( index, destination, Move::ROOK ) );
-                moves.push_back( Move( index, destination, Move::QUEEN ) );
+                moves.emplace_back( index, destination, Move::KNIGHT );
+                moves.emplace_back( index, destination, Move::BISHOP );
+                moves.emplace_back( index, destination, Move::ROOK );
+                moves.emplace_back( index, destination, Move::QUEEN );
             }
             else
             {
-                moves.push_back( Move( index, destination ) );
+                moves.emplace_back( index, destination );
             }
         }
     }
@@ -699,7 +699,7 @@ void Board::getKnightMoves( std::vector<Move>& moves, const unsigned short& piec
         {
             possibleMoves ^= 1ull << destination;
 
-            moves.push_back( Move( index, destination ) );
+            moves.emplace_back( index, destination );
         }
     }
 }
@@ -780,7 +780,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
         {
             possibleMoves ^= 1ull << destination;
 
-            moves.push_back( Move( index, destination ) );
+            moves.emplace_back( index, destination );
         }
 
         // Check whether castling is a possibility
@@ -797,7 +797,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
                     // Test for the king travelling through check
                     if ( !isAttacked( 0b01110000, whiteToMove ) )
                     {
-                        moves.push_back( Move( index, index + 2 ) );
+                        moves.emplace_back( index, index + 2 );
                     }
                 }
             }
@@ -809,7 +809,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
                 {
                     if ( !isAttacked( 0b00011100, whiteToMove ) )
                     {
-                        moves.push_back( Move( index, index - 2 ) );
+                        moves.emplace_back( index, index - 2 );
                     }
                 }
             }
@@ -824,7 +824,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
                 {
                     if ( !isAttacked( 0b0111000000000000000000000000000000000000000000000000000000000000, whiteToMove ) )
                     {
-                        moves.push_back( Move( index, index + 2 ) );
+                        moves.emplace_back( index, index + 2 );
                     }
                 }
             }
@@ -836,7 +836,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
                 {
                     if ( !isAttacked( 0b0001110000000000000000000000000000000000000000000000000000000000, whiteToMove ) )
                     {
-                        moves.push_back( Move( index, index - 2 ) );
+                        moves.emplace_back( index, index - 2 );
                     }
                 }
             }
@@ -952,6 +952,6 @@ void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& 
     {
         possibleMoves ^= 1ull << otherIndex;
 
-        moves.push_back( Move( index, otherIndex ) );
+        moves.emplace_back( index, otherIndex );
     }
 }

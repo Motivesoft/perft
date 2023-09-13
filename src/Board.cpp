@@ -23,6 +23,9 @@ void Board::getMoves( std::vector<Move>& moves )
 {
     const unsigned short bitboardPieceIndex = whiteToMove ? WHITE : BLACK;
 
+    const unsigned long long whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
+    const unsigned long long blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
+
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
     const unsigned long long& accessibleSquares = emptySquares() | attackPieces;
@@ -226,11 +229,6 @@ void Board::applyMove( const Move& move )
     {
         halfMoveClock++;
     }
-
-    // Rebuild the final set of masks - hopefully as quick to do it this was as any other
-    // TODO an option is to avoid adjusting empty along the way and make it from these two here
-    whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
-    blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
 }
 
 void Board::unmakeMove( const Board::State& state )
@@ -565,9 +563,7 @@ Board::State::State( const Board& board ) :
     castlingRights( board.castlingRights ),
     enPassantIndex( board.enPassantIndex ),
     halfMoveClock( board.halfMoveClock ),
-    fullMoveNumber( board.fullMoveNumber ),
-    whitePieces( board.whitePieces ),
-    blackPieces( board.blackPieces )
+    fullMoveNumber( board.fullMoveNumber )
 {
 }
 
@@ -579,8 +575,6 @@ void Board::State::apply( Board& board ) const
     board.enPassantIndex = enPassantIndex;
     board.halfMoveClock = halfMoveClock;
     board.fullMoveNumber = fullMoveNumber;
-    board.whitePieces = whitePieces;
-    board.blackPieces = blackPieces;
 }
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )

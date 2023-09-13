@@ -25,9 +25,6 @@ private:
     // Lucky 13 - empty, 6 white pieces, 6 black pieces
     std::array<unsigned long long, 13> bitboards;
 
-    unsigned long long whitePieces;
-    unsigned long long blackPieces;
-
     bool whiteToMove;
 
     std::array<bool, 4> castlingRights;
@@ -50,19 +47,6 @@ private:
         halfMoveClock( halfMoveClock ),
         fullMoveNumber( fullMoveNumber )
     {
-        whitePieces = blackPieces = 0;
-
-        for ( size_t loop = WHITE; loop < bitboards.size(); loop++ )
-        {
-            if ( loop < BLACK )
-            {
-                whitePieces |= bitboards[ loop ];
-            }
-            else
-            {
-                blackPieces |= bitboards[ loop ];
-            }
-        }
     }
 
     // Instance methods
@@ -140,14 +124,9 @@ private:
     /// <param name="replacingPiece"></param>
     inline void placePiece( unsigned short piece, unsigned long long location, unsigned short replacingPiece )
     {
-        // Remove from all places and then put back into one place - brute force, but allows it to deal with captures
-        //for ( std::array<unsigned long long, 13>::iterator it = bitboards.begin(); it != bitboards.end(); it++ )
-        //{
-        //    (*it) &= ~location;
-        //}
-
-        bitboards[ piece ] |= location;
-        bitboards[ replacingPiece ] &= ~location;
+        // Put the piece into its new location and remove whatever was there from its boards (includes EMPTY)
+        bitboards[ piece ] ^= location;
+        bitboards[ replacingPiece ] ^= location;
     }
 
     void getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces );
@@ -198,9 +177,6 @@ public:
         unsigned long long enPassantIndex;
         unsigned short halfMoveClock;
         unsigned short fullMoveNumber;
-
-        unsigned long long whitePieces;
-        unsigned long long blackPieces;
 
     public:
         State( const Board& board );

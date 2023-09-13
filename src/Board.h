@@ -56,12 +56,6 @@ private:
     }
 
     // Instance methods
-    inline bool isEmpty( unsigned long long bit ) const;
-
-    inline unsigned long long emptySquares() const
-    {
-        return bitboards[ EMPTY ];
-    }
 
     /// <summary>
     /// Find which bitboard array has bit set and return its index

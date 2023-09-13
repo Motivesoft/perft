@@ -25,7 +25,7 @@ void Board::getMoves( std::vector<Move>& moves )
 
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
-    const unsigned long long& accessibleSquares = emptySquares() | attackPieces;
+    const unsigned long long& accessibleSquares = bitboards[ EMPTY ] | attackPieces;
 
     // normal piece logic for all pieces
     // ep? done
@@ -395,7 +395,7 @@ std::string Board::toString() const
     size_t rank = 7;
     for ( unsigned long long mask = 1ull << 56; ; )
     {
-        if ( isEmpty( mask ) )
+        if ( bitboards[ EMPTY ] & mask )
         {
             counter++;
         }
@@ -481,11 +481,6 @@ std::string Board::toString() const
     fen << fullMoveNumber;
 
     return fen.str();
-}
-
-bool Board::isEmpty( unsigned long long bit ) const
-{
-    return emptySquares() & bit;
 }
 
 unsigned short Board::bitboardArrayIndexFromBit( unsigned long long bit ) const
@@ -599,7 +594,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
         possibleMoves = whiteToMove ? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
 
-        possibleMoves &= emptySquares();
+        possibleMoves &= bitboards[ EMPTY ];
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
@@ -633,7 +628,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
 
         possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
 
-        possibleMoves &= emptySquares();
+        possibleMoves &= bitboards[ EMPTY ];
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
@@ -778,7 +773,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
         }
 
         // Check whether castling is a possibility
-        const unsigned long long allEmptySquares = emptySquares();
+        const unsigned long long allEmptySquares = bitboards[ EMPTY ];
         unsigned long long castlingMask;
         if ( whiteToMove )
         {
@@ -901,7 +896,7 @@ bool Board::isAttacked( unsigned long long mask, bool asWhite )
 
 bool Board::isAttacked( const unsigned long& index, const unsigned long long& attackingPieces, DirectionMask directionMask, BitScanner bitScanner )
 {
-    unsigned long long attackMask = directionMask( index ) & ~emptySquares();
+    unsigned long long attackMask = directionMask( index ) & ~bitboards[ EMPTY ];
 
     unsigned long closest;
     if ( bitScanner( &closest, attackMask ) )

@@ -23,9 +23,6 @@ void Board::getMoves( std::vector<Move>& moves )
 {
     const unsigned short bitboardPieceIndex = whiteToMove ? WHITE : BLACK;
 
-    const unsigned long long whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
-    const unsigned long long blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
-
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
     const unsigned long long& accessibleSquares = emptySquares() | attackPieces;
@@ -170,8 +167,9 @@ void Board::applyMove( const Move& move )
         }
     }
 
-    // Flag setting
+    rebuildMasks();
 
+    // Flag setting
     // If a pawn move of two squares, set the ep flag
     if ( fromPiece == bitboardPieceIndex + PAWN && abs( from - to ) == 16 )
     {
@@ -575,6 +573,8 @@ void Board::State::apply( Board& board ) const
     board.enPassantIndex = enPassantIndex;
     board.halfMoveClock = halfMoveClock;
     board.fullMoveNumber = fullMoveNumber;
+
+    board.rebuildMasks();
 }
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )

@@ -37,7 +37,7 @@ void Board::getMoves( std::vector<Move>& moves )
     // TODO move legality test
 
     // Pawn (including ep capture, promotion)
-    getPawnMoves( moves, bitboardPieceIndex + PAWN, accessibleSquares, attackPieces );
+    getPawnMoves( moves, bitboardPieceIndex + PAWN, bitboards[ EMPTY ], attackPieces);
 
     // Knight
     getKnightMoves( moves, bitboardPieceIndex + KNIGHT, accessibleSquares );
@@ -592,20 +592,14 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
         rankFrom = ( index >> 3 ) & 0b00000111;
 
         possibleMoves = whiteToMove ? BitBoard::getWhitePawnNormalMoveMask( index ) : BitBoard::getBlackPawnNormalMoveMask( index );
-
-        possibleMoves &= bitboards[ EMPTY ];
+        possibleMoves &= accessibleSquares; // In this case, empty squares
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
             possibleMoves ^= 1ull << destination;
 
             // Check whether any are elegible to make the extended move (e.g. e2e4) or promote
-            if ( rankFrom == homeRankFrom )
-            {
-                baselinePawns |= 1ull << index;
-                moves.emplace_back( index, destination );
-            }
-            else if ( rankFrom == promotionRankFrom )
+            if ( rankFrom == promotionRankFrom )
             {
                 moves.emplace_back( index, destination, Move::KNIGHT );
                 moves.emplace_back( index, destination, Move::BISHOP );
@@ -615,6 +609,13 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
             else
             {
                 moves.emplace_back( index, destination );
+
+                if ( rankFrom == homeRankFrom )
+                {
+                    // A pawn on its home square, able to move one forward? 
+                    // Remember it so we can check if it can also move two forward
+                    baselinePawns |= 1ull << index;
+                }
             }
         }
     }
@@ -626,8 +627,7 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
         pieces ^= 1ull << index;
 
         possibleMoves = whiteToMove ? BitBoard::getWhitePawnExtendedMoveMask( index ) : BitBoard::getBlackPawnExtendedMoveMask( index );
-
-        possibleMoves &= bitboards[ EMPTY ];
+        possibleMoves &= accessibleSquares; // In this case, empty squares
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
@@ -645,9 +645,9 @@ void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceI
         pieces ^= 1ull << index;
 
         rankFrom = ( index >> 3 ) & 0b00000111;
-        possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
 
-        possibleMoves &= ( attackPieces | enPassantIndex );
+        possibleMoves = whiteToMove ? BitBoard::getWhitePawnAttackMoveMask( index ) : BitBoard::getBlackPawnAttackMoveMask( index );
+        possibleMoves &= ( attackPieces | enPassantIndex ); // enemy pieces or the empty EP square (which is 0 if there is none)
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
         {
@@ -674,13 +674,14 @@ void Board::getKnightMoves( std::vector<Move>& moves, const unsigned short& piec
     unsigned long index;
     unsigned long destination;
 
+    unsigned long long possibleMoves;
+
     pieces = bitboards[ pieceIndex ];
     while ( _BitScanForward64( &index, pieces ) )
     {
         pieces ^= 1ull << index;
 
-        unsigned long long possibleMoves = BitBoard::getKnightMoveMask( index );
-
+        possibleMoves = BitBoard::getKnightMoveMask( index );
         possibleMoves &= accessibleSquares;
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
@@ -702,11 +703,11 @@ void Board::getBishopMoves( std::vector<Move>& moves, const unsigned short& piec
     {
         pieces ^= 1ull << index;
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthEastMoveMask, scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthWestMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getNorthEastMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getNorthWestMoveMask, scanForward );
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthWestMoveMask, scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthEastMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getSouthWestMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getSouthEastMoveMask, scanReverse );
     }
 }
 
@@ -720,11 +721,11 @@ void Board::getRookMoves( std::vector<Move>& moves, const unsigned short& pieceI
     {
         pieces ^= 1ull << index;
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthMoveMask, scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getWestMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getNorthMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getWestMoveMask, scanForward );
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthMoveMask, scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getEastMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getSouthMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getEastMoveMask, scanReverse );
     }
 }
 
@@ -738,15 +739,15 @@ void Board::getQueenMoves( std::vector<Move>& moves, const unsigned short& piece
     {
         pieces ^= 1ull << index;
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthMoveMask, scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getWestMoveMask, scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthEastMoveMask, scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthWestMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getNorthMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getWestMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getNorthEastMoveMask, scanForward );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getNorthWestMoveMask, scanForward );
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthMoveMask, scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getEastMoveMask, scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthWestMoveMask, scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthEastMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getSouthMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getEastMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getSouthWestMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, attackPieces, blockingPieces, BitBoard::getSouthEastMoveMask, scanReverse );
     }
 }
 
@@ -756,12 +757,13 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
     unsigned long index;
     unsigned long destination;
 
+    unsigned long long possibleMoves;
+
     // There is only one king, so we can use an if, not a when here and be sure we're only going round once
     pieces = bitboards[ pieceIndex ];
     if ( _BitScanForward64( &index, pieces ) )
     {
-        unsigned long long possibleMoves = BitBoard::getKingMoveMask( index );
-
+        possibleMoves = BitBoard::getKingMoveMask( index );
         possibleMoves &= accessibleSquares;
 
         while ( _BitScanForward64( &destination, possibleMoves ) )
@@ -774,6 +776,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
         // Check whether castling is a possibility
         const unsigned long long emptySquares = bitboards[ EMPTY ];
         unsigned long long castlingMask;
+
         if ( whiteToMove )
         {
             if ( castlingRights[ 0 ] )
@@ -913,7 +916,7 @@ bool Board::isAttacked( const unsigned long& index, const unsigned long long& at
 
 // Pass a scanner in here so that we can look either forward or reverse to make sure we check the closest attacker/blocker and
 // don't waste time checking those further away
-void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask, BitScanner bitScanner )
+void Board::getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask, BitScanner bitScanner )
 {
     unsigned long otherIndex;
 

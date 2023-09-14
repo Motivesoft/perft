@@ -34,11 +34,6 @@ private:
     unsigned short halfMoveClock;
     unsigned short fullMoveNumber;
 
-    // Transient objects - not persisted with state
-
-    unsigned long long whitePieces;
-    unsigned long long blackPieces;
-
     Board( std::array<unsigned long long, 13> bitboards,
            bool whiteToMove,
            std::array<bool, 4> castlingRights,
@@ -52,7 +47,6 @@ private:
         halfMoveClock( halfMoveClock ),
         fullMoveNumber( fullMoveNumber )
     {
-        rebuildMasks();
     }
 
     // Instance methods
@@ -160,14 +154,6 @@ private:
     bool isAttacked( const unsigned long& index, const unsigned long long& attackingPieces, DirectionMask directionMask, BitScanner bitScanner );
 
     void applyMove( const Move& move );
-
-    inline void rebuildMasks()
-    {
-        whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
-        blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
-
-        bitboards[ EMPTY ] = ~( whitePieces | blackPieces );
-    }
 
 public:
     static Board* createBoard( const std::string& fen );

@@ -23,6 +23,9 @@ void Board::getMoves( std::vector<Move>& moves )
 {
     const unsigned short bitboardPieceIndex = whiteToMove ? WHITE : BLACK;
 
+    const unsigned long long whitePieces = bitboards[ WHITE + PAWN ] | bitboards[ WHITE + KNIGHT ] | bitboards[ WHITE + BISHOP ] | bitboards[ WHITE + ROOK ] | bitboards[ WHITE + QUEEN ] | bitboards[ WHITE + KING ];
+    const unsigned long long blackPieces = bitboards[ BLACK + PAWN ] | bitboards[ BLACK + KNIGHT ] | bitboards[ BLACK + BISHOP ] | bitboards[ BLACK + ROOK ] | bitboards[ BLACK + QUEEN ] | bitboards[ BLACK + KING ];
+
     const unsigned long long& blockingPieces = whiteToMove ? whitePieces : blackPieces;
     const unsigned long long& attackPieces = whiteToMove ? blackPieces : whitePieces;
     const unsigned long long& accessibleSquares = bitboards[ EMPTY ] | attackPieces;
@@ -166,8 +169,6 @@ void Board::applyMove( const Move& move )
                 break;
         }
     }
-
-    rebuildMasks();
 
     // Flag setting
     // If a pawn move of two squares, set the ep flag
@@ -568,8 +569,6 @@ void Board::State::apply( Board& board ) const
     board.enPassantIndex = enPassantIndex;
     board.halfMoveClock = halfMoveClock;
     board.fullMoveNumber = fullMoveNumber;
-
-    board.rebuildMasks();
 }
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )
@@ -703,11 +702,11 @@ void Board::getBishopMoves( std::vector<Move>& moves, const unsigned short& piec
     {
         pieces ^= 1ull << index;
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask, &scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthEastMoveMask, scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthWestMoveMask, scanForward );
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask, &scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthWestMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthEastMoveMask, scanReverse );
     }
 }
 
@@ -721,11 +720,11 @@ void Board::getRookMoves( std::vector<Move>& moves, const unsigned short& pieceI
     {
         pieces ^= 1ull << index;
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask, &scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getWestMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthMoveMask, scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getWestMoveMask, scanForward );
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask, &scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getEastMoveMask, scanReverse );
     }
 }
 
@@ -739,15 +738,15 @@ void Board::getQueenMoves( std::vector<Move>& moves, const unsigned short& piece
     {
         pieces ^= 1ull << index;
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthMoveMask, &scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getWestMoveMask, &scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthEastMoveMask, &scanForward );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getNorthWestMoveMask, &scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthMoveMask, scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getWestMoveMask, scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthEastMoveMask, scanForward );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getNorthWestMoveMask, scanForward );
 
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthMoveMask, &scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getEastMoveMask, &scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthWestMoveMask, &scanReverse );
-        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, &BitBoard::getSouthEastMoveMask, &scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getEastMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthWestMoveMask, scanReverse );
+        getDirectionalMoves( moves, index, accessibleSquares, attackPieces, blockingPieces, BitBoard::getSouthEastMoveMask, scanReverse );
     }
 }
 
@@ -773,7 +772,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
         }
 
         // Check whether castling is a possibility
-        const unsigned long long allEmptySquares = bitboards[ EMPTY ];
+        const unsigned long long emptySquares = bitboards[ EMPTY ];
         unsigned long long castlingMask;
         if ( whiteToMove )
         {
@@ -781,7 +780,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getWhiteKingsideCastlingMask();
 
-                if ( ( allEmptySquares & castlingMask ) == castlingMask )
+                if ( ( emptySquares & castlingMask ) == castlingMask )
                 {
                     // Test for the king travelling through check
                     if ( !isAttacked( 0b01110000, whiteToMove ) )
@@ -794,7 +793,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getWhiteQueensideCastlingMask();
 
-                if ( ( allEmptySquares & castlingMask ) == castlingMask )
+                if ( ( emptySquares & castlingMask ) == castlingMask )
                 {
                     if ( !isAttacked( 0b00011100, whiteToMove ) )
                     {
@@ -809,7 +808,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getBlackKingsideCastlingMask();
 
-                if ( ( allEmptySquares & castlingMask ) == castlingMask )
+                if ( ( emptySquares & castlingMask ) == castlingMask )
                 {
                     if ( !isAttacked( 0b0111000000000000000000000000000000000000000000000000000000000000, whiteToMove ) )
                     {
@@ -821,7 +820,7 @@ void Board::getKingMoves( std::vector<Move>& moves, const unsigned short& pieceI
             {
                 castlingMask = BitBoard::getBlackQueensideCastlingMask();
 
-                if ( ( allEmptySquares & castlingMask ) == castlingMask )
+                if ( ( emptySquares & castlingMask ) == castlingMask )
                 {
                     if ( !isAttacked( 0b0001110000000000000000000000000000000000000000000000000000000000, whiteToMove ) )
                     {
@@ -838,6 +837,8 @@ bool Board::isAttacked( unsigned long long mask, bool asWhite )
     const unsigned short bitboardPieceIndex = asWhite ? BLACK : WHITE;
 
     unsigned long long attackerSquares;
+    unsigned long long diagonalPieces = bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ];
+    unsigned long long crossingPieces = bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ];
 
     // For each mask square...
 
@@ -865,19 +866,19 @@ bool Board::isAttacked( unsigned long long mask, bool asWhite )
         }
 
         // Bishop + Queen
-        if ( isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getNorthWestMoveMask, scanForward ) ||
-             isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getNorthEastMoveMask, scanForward ) ||
-             isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getSouthWestMoveMask, scanReverse ) ||
-             isAttacked( index, bitboards[ bitboardPieceIndex + BISHOP ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getSouthEastMoveMask, scanReverse ) )
+        if ( isAttacked( index, diagonalPieces, BitBoard::getNorthWestMoveMask, scanForward ) ||
+             isAttacked( index, diagonalPieces, BitBoard::getNorthEastMoveMask, scanForward ) ||
+             isAttacked( index, diagonalPieces, BitBoard::getSouthWestMoveMask, scanReverse ) ||
+             isAttacked( index, diagonalPieces, BitBoard::getSouthEastMoveMask, scanReverse ) )
         {
             return true;
         }
 
         // Rook + Queen
-        if ( isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getNorthMoveMask, scanForward ) || 
-             isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getWestMoveMask, scanForward ) || 
-             isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getSouthMoveMask, scanReverse ) || 
-             isAttacked( index, bitboards[ bitboardPieceIndex + ROOK ] | bitboards[ bitboardPieceIndex + QUEEN ], &BitBoard::getEastMoveMask, scanReverse ) )
+        if ( isAttacked( index, crossingPieces, BitBoard::getNorthMoveMask, scanForward ) ||
+             isAttacked( index, crossingPieces, BitBoard::getWestMoveMask, scanForward ) || 
+             isAttacked( index, crossingPieces, BitBoard::getSouthMoveMask, scanReverse ) || 
+             isAttacked( index, crossingPieces, BitBoard::getEastMoveMask, scanReverse ) )
         {
             return true;
         }

@@ -153,8 +153,6 @@ private:
     void getDirectionalMoves( std::vector<Move>& moves, const unsigned long& index, const unsigned long long& attackPieces, const unsigned long long& blockingPieces, DirectionMask directionMask, BitScanner bitScanner );
     bool isAttacked( const unsigned long& index, const unsigned long long& attackingPieces, DirectionMask directionMask, BitScanner bitScanner );
 
-    void applyMove( const Move& move );
-
 public:
     static Board* createBoard( const std::string& fen );
 
@@ -180,5 +178,7 @@ public:
 
     Board::State makeMove( const Move& move );
     void unmakeMove( const Board::State& state );
+
+    void applyMove( const Move& move );
 };
 

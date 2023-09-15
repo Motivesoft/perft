@@ -197,11 +197,12 @@ unsigned int Test::divideLoop( int depth, Board* board )
     // but we'd need to (a) still think about the divide thing and (b) admit we were no
     // longer comparing like for like with motive-chess and it would be an meaningless win
 
+    Board::State undo = Board::State( board );
     for ( std::vector<Move>::const_iterator it = moves.cbegin(); it != moves.cend(); it++ )
     {
         const Move& move = *it;
 
-        Board::State undo = board->makeMove( move );
+        board->applyMove( move );
 
         unsigned long moveNodes = perftLoop( depth - 1, board );
         nodes += moveNodes;
@@ -232,11 +233,12 @@ unsigned int Test::perftLoop( int depth, Board* board )
     // but we'd need to (a) still think about the divide thing and (b) admit we were no
     // longer comparing like for like with motive-chess and it would be an meaningless win
 
+    Board::State undo = Board::State( board );
     for ( std::vector<Move>::const_iterator it = moves.cbegin(); it != moves.cend(); it++ )
     {
         const Move& move = *it;
 
-        Board::State undo = board->makeMove( move );
+        board->applyMove( move );
 
         nodes += perftLoop( depth - 1, board );
 

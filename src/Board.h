@@ -173,9 +173,9 @@ public:
         unsigned short fullMoveNumber;
 
     public:
-        State( const Board& board );
+        State( const Board* board );
 
-        void apply( Board& board ) const;
+        void apply( Board* board ) const;
     };
 
     Board::State makeMove( const Move& move );

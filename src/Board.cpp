@@ -55,7 +55,7 @@ void Board::getMoves( std::vector<Move>& moves )
     getKingMoves( moves, bitboardPieceIndex + KING, accessibleSquares );
 
     // TODO is the king in check after any of these moves?
-    Board::State state( *this );
+    Board::State state( this );
     for ( std::vector<Move>::iterator it = moves.begin(); it != moves.end(); )
     {
         applyMove( *it );
@@ -77,7 +77,7 @@ void Board::getMoves( std::vector<Move>& moves )
 // then we can call applyMove multiple times and restore from a single state in for-each-move loops
 Board::State Board::makeMove( const Move& move )
 {
-    Board::State state( *this );
+    Board::State state( this );
     
     applyMove( move );
     
@@ -232,7 +232,7 @@ void Board::applyMove( const Move& move )
 
 void Board::unmakeMove( const Board::State& state )
 {
-    state.apply( *this );
+    state.apply( this );
 }
 
 Board* Board::createBoard( const std::string& fen )
@@ -551,24 +551,24 @@ unsigned short Board::bitboardArrayIndexFromPiece( const char piece )
     }
 }
 
-Board::State::State( const Board& board ) :
-    bitboards( board.bitboards ),
-    whiteToMove( board.whiteToMove ),
-    castlingRights( board.castlingRights ),
-    enPassantIndex( board.enPassantIndex ),
-    halfMoveClock( board.halfMoveClock ),
-    fullMoveNumber( board.fullMoveNumber )
+Board::State::State( const Board* board ) :
+    bitboards( board->bitboards ),
+    whiteToMove( board->whiteToMove ),
+    castlingRights( board->castlingRights ),
+    enPassantIndex( board->enPassantIndex ),
+    halfMoveClock( board->halfMoveClock ),
+    fullMoveNumber( board->fullMoveNumber )
 {
 }
 
-void Board::State::apply( Board& board ) const
+void Board::State::apply( Board* board ) const
 {
-    board.bitboards = bitboards;
-    board.whiteToMove = whiteToMove;
-    board.castlingRights = castlingRights;
-    board.enPassantIndex = enPassantIndex;
-    board.halfMoveClock = halfMoveClock;
-    board.fullMoveNumber = fullMoveNumber;
+    board->bitboards = bitboards;
+    board->whiteToMove = whiteToMove;
+    board->castlingRights = castlingRights;
+    board->enPassantIndex = enPassantIndex;
+    board->halfMoveClock = halfMoveClock;
+    board->fullMoveNumber = fullMoveNumber;
 }
 
 void Board::getPawnMoves( std::vector<Move>& moves, const unsigned short& pieceIndex, const unsigned long long& accessibleSquares, const unsigned long long& attackPieces )

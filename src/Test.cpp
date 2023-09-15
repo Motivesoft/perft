@@ -229,6 +229,11 @@ unsigned int Test::perftLoop( int depth, Board* board )
 
     board->getMoves( moves );
 
+    if ( depth == 1 )
+    {
+        return static_cast<unsigned int>( moves.size() );
+    }
+
     // We could get an unfair advantage here by returning count of moves if depth is 1
     // but we'd need to (a) still think about the divide thing and (b) admit we were no
     // longer comparing like for like with motive-chess and it would be an meaningless win
